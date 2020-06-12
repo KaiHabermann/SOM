@@ -280,7 +280,7 @@ class SOM(object):
 
 	def map(self,input_values):
 		if C_INIT_SUCESS:
-			self._map_c(input_values)
+			return self._map_c(input_values)
 		else:
 			return [self.Grid[self.winning_neuron(x,self.weights)] for x in input_values]
 		
