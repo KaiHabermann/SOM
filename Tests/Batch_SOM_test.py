@@ -108,15 +108,19 @@ def trained_mnist_test():
 	som.load("../csv_files/trainierte_soms/60x90.csv")
 	
 	sns.heatmap(som.get_umatrix())
+	plt.ylabel("y")
+	plt.xlabel("x")
+	plt.title("U-Matrix")
 	plt.show()
 	
-	mapped_values = som.map(values[:10])
+	mapped_values = som.map(values)
 	hit_histogram = np.zeros(map_dim)
 	print(mapped_values)
 	for x,y in mapped_values:
 		hit_histogram[x][y] += 1
 	
-	sns.histogram(hit_histogram)
+	sns.heatmap(hit_histogram)
+	plt.title("Heatmap der Treffer")
 	plt.show()
 
 		
