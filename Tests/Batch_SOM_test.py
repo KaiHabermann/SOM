@@ -121,6 +121,8 @@ def trained_mnist_test():
 	
 	sns.heatmap(hit_histogram)
 	plt.title("Heatmap der Treffer")
+	plt.ylabel("y")
+	plt.xlabel("x")
 	plt.show()
 
 		

@@ -43,6 +43,8 @@
 		hit_histogram[x][y] += 1
 	
 	sns.heatmap(hit_histogram)
+	plt.ylabel("y")
+	plt.xlabel("x")
 	plt.title("Heatmap der Treffer")
 	plt.show()
 	
