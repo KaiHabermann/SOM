@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches as patches
 from collections import defaultdict
 import time
+import seaborn as sns
 
 # make sure SOM_neu is in PATH
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -24,8 +25,13 @@ def color_test():
 	# data
 	values = np.random.randint(0, 256, (2000, 3)).astype(np.float64) #colors
 	decrease = "linear"
+	decrease = "exp"
 	# using RGBA - Vectors for simplicity 
 	values /= np.linalg.norm(values, axis=1).reshape(values.shape[0], 1)
+	
+	# som setup
+	# for colors periodic_boundarys = False is simply prettier
+	# PCA give the option to use PCA for initial Neuron distribution
 	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False)
 	
 	# Training 
@@ -33,7 +39,7 @@ def color_test():
 	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 	# same goes for sigma, aka radius
 	start = time.time()
-	som.train(prnt = True,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	som.train(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
 	print("Training time:",time.time() - start,"s")
 
 	# unused test-values
@@ -61,10 +67,16 @@ def color_test():
 			ax.add_patch(patches.Rectangle(result, 1, 1, facecolor=color, edgecolor='none'))
 	plt.show()
 	
+	
+	# show umatrix
+	sns.heatmap(som.get_umatrix())
+	plt.title("U-Matrix")
+	plt.show()
+	
 	# show component planes
 	for comp in range(3):
 		component_plane = som.weights[:,comp].reshape((map_dim))
-		sn.heatmap(component_plane,linewidth = 0,rasterized=False,cmap=["Reds","Greens","Blues"][comp])
+		sns.heatmap(component_plane,linewidth = 0,rasterized=False,cmap=["Reds","Greens","Blues"][comp])
 		plt.xlabel("x")
 		plt.ylabel("y")
 		plt.title("Verteilung von %s"%["rot","grün","blau"][comp])
