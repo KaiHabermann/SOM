@@ -14,6 +14,7 @@
 	from SOM import *
 	import numpy as np
 	import seborn as sns
+	import matplotlib.pyplot as plt
 	
 	values = np.loadtxt("csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
 	decrease = "linear"
@@ -27,5 +28,6 @@
 	som.load("csv_files/trainierte_soms/60x90.csv")
 	
 	sns.heatmap(som.get_umatrix())
+	plt.shpw()
 	
 ```
