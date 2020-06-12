@@ -2,35 +2,46 @@ import sys
 import numpy as np
 import os,sys,inspect
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import patches as patches
+from collections import defaultdict
+import time
+
+# make sure SOM_neu is in PATH
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-print(parent_dir)
 from SOM_neu import *
-import matplotlib.pyplot as plt
-from matplotlib import patches as patches
-from collections import defaultdict
-from scipy.spatial import ConvexHull
-import seaborn as sn
-import time
-
 
 def color_test():
+	"""
+	Simple SOM Showcase using rgb-color-vectors
+	"""
+	
 	map_dim = (30,20)
+	
+	# data
 	values = np.random.randint(0, 256, (2000, 3)).astype(np.float64) #colors
-	# print(values)
 	decrease = "linear"
+	# using RGBA - Vectors for simplicity 
 	values /= np.linalg.norm(values, axis=1).reshape(values.shape[0], 1)
 	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False)
-	start = time.time()
-	som.train(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
-	print("Training time:",time.time() - start)
-
 	
+	# Training 
+	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
+	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
+	# same goes for sigma, aka radius
+	start = time.time()
+	som.train(prnt = True,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	print("Training time:",time.time() - start,"s")
+
+	# unused test-values
+	# get mapped as example, but wont be used
 	test_values = np.random.randint(0, 256, (5000, 3)).astype(np.float64)
 	test_values /=  np.linalg.norm(test_values, axis=1).reshape(test_values.shape[0], 1)
 	out = som.map(test_values)
+	
 	# Plot
 	fig = plt.figure()
 
@@ -39,6 +50,7 @@ def color_test():
 	ax.set_xlim((0, map_dim[0]))
 	ax.set_ylim((0, map_dim[1]))
 	
+	# decide if you wnat to plot neurons or plot the mapped data. Neurons is defentily prettier
 	show_neurons = True
 	
 	if show_neurons:
@@ -49,6 +61,7 @@ def color_test():
 			ax.add_patch(patches.Rectangle(result, 1, 1, facecolor=color, edgecolor='none'))
 	plt.show()
 	
+	# show component planes
 	for comp in range(3):
 		component_plane = som.weights[:,comp].reshape((map_dim))
 		sn.heatmap(component_plane,linewidth = 0,rasterized=False,cmap=["Reds","Greens","Blues"][comp])
