@@ -8,7 +8,7 @@ from collections import defaultdict
 import time
 import seaborn as sns
 
-# make sure SOM_neu is in PATH
+# make sure SOM is in PATH
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
@@ -41,6 +41,7 @@ def color_test():
 	# same goes for sigma, aka radius
 	start = time.time()
 	som.train(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	
 	# alternative training
 	# uses python, but runs each batch in prarllel
 	# only useful, if batches are large
