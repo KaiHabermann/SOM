@@ -1,7 +1,8 @@
 # SOM_for_ATLAS
 
-setup by installing git lfs<br/>
+## Setup:
+- setup by installing git lfs<br/>
 
-then run `<em>sh setup.sh</em>` <br/>
+- then run sh setup.sh <br/>
 
-then run git pull<br/>
+- then run git pull<br/>
