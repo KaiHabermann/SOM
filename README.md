@@ -20,7 +20,6 @@
 	values = np.loadtxt("csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
 	decrease = "linear"
 	# decrease = "exp"
-	values /= np.linalg.norm(values, axis=1).reshape(values.shape[0], 1)
 	
 	# som setup
 	# PCA give the option to use PCA for initial Neuron distribution

@@ -97,7 +97,6 @@ def trained_mnist_test():
 	values = np.loadtxt("../csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
 	decrease = "linear"
 	# decrease = "exp"
-	values /= np.linalg.norm(values, axis=1).reshape(values.shape[0], 1)
 	
 	# som setup
 	# PCA give the option to use PCA for initial Neuron distribution
@@ -115,7 +114,7 @@ def trained_mnist_test():
 	
 	mapped_values = som.map(values)
 	hit_histogram = np.zeros(map_dim)
-	print(mapped_values)
+
 	for x,y in mapped_values:
 		hit_histogram[x][y] += 1
 	

@@ -96,7 +96,7 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 			value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
 			// find minimum
 			for(int x = 0; x < dimx; x++){
-				for(int y = 1; y < dimy; y++){
+				for(int y = 0; y < dimy; y++){
 					nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
 					if (nrm < value){
 						value = nrm;
@@ -232,7 +232,7 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 			value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
 			// find minimum
 			for(int x = 0; x < dimx; x++){
-				for(int y = 1; y < dimy; y++){
+				for(int y = 0; y < dimy; y++){
 					nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
 					if (nrm < value){
 						value = nrm;
@@ -302,7 +302,7 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 		value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
 		// find minimum
 		for(int x = 0; x < dimx; x++){
-			for(int y = 1; y < dimy; y++){
+			for(int y = 0; y < dimy; y++){
 				nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
 				if (nrm < value){
 					value = nrm;
