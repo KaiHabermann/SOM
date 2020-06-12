@@ -5,7 +5,7 @@
 
 - then run sh setup.sh <br/>
 
-- then run git pull<br/>
+- then run git pull a final time to pull all large data files<br/>
 
 ## Exampe code for 60x90 SOM:
 
