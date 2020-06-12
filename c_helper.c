@@ -2,7 +2,6 @@
 #import <math.h>
 #import <stdlib.h>
 #import <unistd.h>
-#import <omp.h>
 double norm(double*mat1,double* vec, int x, int y, int dimx, int dimy, int input_dim){
 	int i = x*dimy*input_dim + y * input_dim;
 	double sum = 0; 
