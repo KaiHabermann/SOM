@@ -22,26 +22,18 @@ def color_test():
 	# print(values)
 	decrease = "linear"
 	values /= np.linalg.norm(values, axis=1).reshape(values.shape[0], 1)
-	som = batch_SOM(map_dim,3,values,max_epochs=500,batch_size=100,lerning_rate = 0.2,neighbourhood_function=gauss(0.5*map_dim[0]),sigma_decay=1.,lerning_rate_decay = 0.01,PCA=True,radius_decrease = decrease, lr_decrease = decrease,pool_size=2,periodic_boundarys=False,sigma=3)
-	print(som.indim)
+	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False)
 	start = time.time()
-	som.train_c(prnt = False)
-	print(time.time() - start)
-	start = time.process_time()
-	# som.train(prnt = False)
-	print(time.process_time() - start)
-	start = time.process_time()
-	#som.train(prnt = False)
-	print(time.process_time() - start)
+	som.train(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	print("Training time:",time.time() - start)
 
-	# som.train(prnt = True)
 	
-	print(np.max(som.weights))
 	test_values = np.random.randint(0, 256, (5000, 3)).astype(np.float64)
 	test_values /=  np.linalg.norm(test_values, axis=1).reshape(test_values.shape[0], 1)
 	out = som.map(test_values)
 	# Plot
 	fig = plt.figure()
+
 	# setup axes
 	ax = fig.add_subplot(111, aspect='equal')
 	ax.set_xlim((0, map_dim[0]))
@@ -55,7 +47,7 @@ def color_test():
 	else:
 		for result,color in zip(out,test_values):
 			ax.add_patch(patches.Rectangle(result, 1, 1, facecolor=color, edgecolor='none'))
-	
+	plt.show()
 	
 	for comp in range(3):
 		component_plane = som.weights[:,comp].reshape((map_dim))

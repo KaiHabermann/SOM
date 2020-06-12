@@ -4,23 +4,26 @@ import json
 from collections import defaultdict
 from multiprocessing import Pool, Array, get_context
 import ctypes
+import os
 import global_arrays
 from scipy.stats import f, norm,levene, bartlett, mannwhitneyu
 
 global_arrays.data = [None,None]
 try:
-	_c_extension = ctypes.CDLL('/Users/kai/Desktop/Bachelorarbeit/OSM/libsom.so')
-	_c_extension.train_from_c.argtypes = (ctypes.c_int , ctypes.c_int, ctypes.c_int,ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,ctypes.c_int, ctypes.c_int, ctypes.c_int)
+	path = os.path.dirname(os.path.abspath(__file__))
+	_c_extension = ctypes.CDLL(path + '/libsom.so')
+	_c_extension.train_from_c.argtypes = (ctypes.c_int , ctypes.c_int, ctypes.c_int,ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),ctypes.POINTER(ctypes.c_double),ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 	_c_extension.train_from_c.restype = ctypes.POINTER(ctypes.c_double)
 
-	_c_extension.train_from_c_periodic.argtypes = (ctypes.c_int , ctypes.c_int, ctypes.c_int,ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,ctypes.c_int, ctypes.c_int, ctypes.c_int)
+	_c_extension.train_from_c_periodic.argtypes = (ctypes.c_int , ctypes.c_int, ctypes.c_int,ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),ctypes.POINTER(ctypes.c_double),ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 	_c_extension.train_from_c_periodic.restype = ctypes.POINTER(ctypes.c_double)
 
 	_c_extension.map_from_c.argtypes = (ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)), ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 	_c_extension.map_from_c.restype = ctypes.POINTER(ctypes.c_int)
 
 	C_INIT_SUCESS = True
-except:
+except Exception as e:
+	print("WARNING C-Library could not be imported.\nC-accelerated functions can not be used.\nError as follows %s"%e)
 	C_INIT_SUCESS = False
 
 def gauss(sgma):
@@ -120,46 +123,24 @@ def winning_neuron_asyinc(args):
 	
 	
 class SOM(object):
-	def __init__(self,outdim,indim,trainings_set,neighbourhood_function = gauss(2),sigma=2,lerning_rate = 0.2,lerning_rate_decay = 1000,max_epochs = 10000,sigma_decay = 100,PCA = False,validate = None,break_condition = None,keys = None,periodic_boundarys = False,random=False, radius_decrease = "exp", lr_decrease = "exp"):
+	def __init__(self,outdim,indim,trainings_set,PCA = False,periodic_boundarys = False,random=False,neighbourhood_function = gauss(2)):
 		
-			
-		self.time_const = lerning_rate_decay
-		self.sigma_time_const = sigma_decay
+				
 		self.tr_set = trainings_set
 		self.h = neighbourhood_function
 		self.Grid = np.mgrid[0:outdim[0],0:outdim[1]].reshape(2,outdim[0]*outdim[1]).T # mapping flat index to map postition
-		self.max_epochs = max_epochs
-		self.sigma = sigma
-		self.lerning_rate = lerning_rate
-		self.initail_lerning_rate = lerning_rate
-		self.initial_sigma = sigma
 		self.periodic = periodic_boundarys
 		self.random = random
 		
-		self.radius_decrease = radius_decrease
-		self.lr_decrease = lr_decrease
 		self.outdim = np.asarray(outdim)
 		self.indim = indim
-		self.validation_data = validate
-		if break_condition is not None:
-			self.break_point = break_condition
-			self.keys = keys
-			self.keyrange = np.max(keys) + 1
-
+		self.weights_initialized = False
 		if PCA:
 			self.PCA_preprocessing()
+			self.weights_initialized = True
 		else:
 			self.weights = self.tr_set[np.random.randint(0,len(self.tr_set),outdim[0]*outdim[1])].copy()
-			#self.weights /= np.linalg.norm(self.weights, axis=1).reshape(self.weights.shape[0], 1)
-
-		
-		# helpers to reduce memory work
-		# self.d = np.zeros(self.weights.shape[0],dtype=np.int64)
-		
-		# lookup array for distances
-		# self.distance = np.zeros(outdim[0] * outdim[1] )
-
-			
+				
 		
 	def PCA_preprocessing(self):
 		from sklearn.decomposition import PCA
@@ -184,8 +165,6 @@ class SOM(object):
 		
 		
 		def transform_sapce(x):
-			#print( (max_PC - min_PC ) /float(self.outdim))
-			#print(x)
 			x *=  (max_PC - min_PC ) /self.outdim
 			x +=  min_PC
 			return x
@@ -217,10 +196,8 @@ class SOM(object):
 		else:
 			### no periodic boundry ###
 			self.d = np.sum((G-g)**2,axis=1) 
-		# d = np.sum(np.square(self.Grid - self.Grid[index_flat]), axis=1)
 		# Topological Neighbourhood Function
 		h = lr * self.h(self.d)[:, np.newaxis]
-		# ne.evaluate('W + h * (x - W)',out=W)
 		W+=h*(x - W)
 		return W
 
@@ -244,19 +221,69 @@ class SOM(object):
 	def set_tr_set(self,trainings_set):
 		self.tr_set = trainings_set
 	
-	def train(self):
+	def train(self,sigma=2,learning_rate = 0.2,learning_rate_end = 0.001,max_epochs = 10000,sigma_end = 1, radius_decrease = "exp", lr_decrease = "exp"):
+		
+		# set all parameters before training
+		self.lr_end = learning_rate_end
+		self.sigma_end = sigma_end
+		
+		if radius_decrease ==  "linear":
+			self.sigma_time_const = ( (learning_rate - learning_rate_end))/max_epochs
+		elif radius_decrease == "exp":
+			self.sigma_time_const = (-1.)*max_epochs  /(np.log(learning_rate_end) - np.log(learning_rate))
+			
+		if lr_decrease ==  "linear":
+			self.time_const = ((sigma - sigma_end))/max_epochs
+		elif lr_decrease == "exp":
+			self.time_const = (-1.)*max_epochs  /(np.log(sigma_end) - np.log(sigma))
+		
+		self.radius_decrease = radius_decrease
+		self.lr_decrease = lr_decrease
+		self.max_epochs = max_epochs
+		self.sigma = sigma
+		self.learning_rate = learning_rate
+		self.initail_learning_rate = learning_rate
+		self.initial_sigma = sigma
+
 		epoch = 0
 		while epoch <= self.max_epochs:
 			element = self.tr_set[random.randint(0,len(self.tr_set)-1)]
-			self.weights = self.update_weights(self.lerning_rate,element,self.weights)
+			self.weights = self.update_weights(self.learning_rate,element,self.weights)
 			epoch += 1
-			self.lerning_rate = self.decay_learning_rate(self.initail_lerning_rate,epoch,self.time_const)
+			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
 			self.decay_variance(self.initial_sigma,epoch,self.sigma_time_const)
 			
-			
+		
+	def _map_c(self,values):
+		global _c_extension
+		c_pointer = ctypes.POINTER(ctypes.c_double)
+		input_values_pp = (c_pointer * len(values)) ()
+		
+		for i,a in enumerate(values):
+			input_values_pp[i] = (ctypes.c_double * len(a))()
+			for j in range(len(a)):
+				input_values_pp[i][j] = a[j]
+		
+		c_x = ctypes.c_int(self.outdim[0])
+		c_y = ctypes.c_int(self.outdim[1])
+		c_input_dim = ctypes.c_int(self.indim)
+		c_input_size = ctypes.c_int(len(values))
+		try:
+			c_weights = self.weights_c
+		except:
+			c_weights = self.weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+		
+		mapped_values_c = _c_extension.map_from_c(c_weights,input_values_pp,c_x,c_y,c_input_dim,c_input_size)
+		mapped_values = np.ctypeslib.as_array(mapped_values_c,shape=(len(values),2))
+		return mapped_values
+
 
 	def map(self,input_values):
-		return [self.Grid[self.winning_neuron(x,self.weights)] for x in input_values]
+		if C_INIT_SUCESS:
+			self._map_c(input_values)
+		else:
+			return [self.Grid[self.winning_neuron(x,self.weights)] for x in input_values]
+		
 	
 	def map_array_flat(self,input_values):
 		result = np.zeros(len(input_values),dtype=np.int)
@@ -326,6 +353,9 @@ class SOM(object):
 		
 		
 	def get_umatrix(self):
+		"""
+		returns universal distance matrix for trained SOM
+		"""
 		umatrix = np.zeros(tuple(self.outdim.tolist()))
 		weights = self.weights.reshape((self.outdim[0],self.outdim[1],self.indim))
 		for i in range(self.outdim[0]):
@@ -342,6 +372,13 @@ class SOM(object):
 		
 	
 	def topopgraphic_product(self,k_end = -1):
+		
+		"""
+		topographic product as described by poelzbauer
+		k_end ist for processing time, since processing time increases with O(n**4) 
+		k_end gives depth of iteration for each neuron
+		"""
+		
 		if k_end == -1:
 			k_end = self.weights.shape[0] - 1
 		elif k_end > self.weights.shape[0] - 1:
@@ -386,11 +423,11 @@ class SOM(object):
 				p1_d = np.sum((self.weights[knn_output] - element)**2, axis=1)**0.5
 				d_temp = (np.sum((self.weights[knn_input] - element)**2, axis=1))**0.5
 				
+				# nans may happen
 				p1 =  np.nansum( np.log((p1_d)  /  d_temp )) 
 				
 				p2 =  np.nansum( np.log(d_knn_input / d ))
 				
-								
 				topo_map[i] +=( p1 +  p2 )*(1/(2*k))
 		
 		return  np.sum(topo_map)/(self.weights.shape[0] * (k_end) ), topo_map.reshape(tuple(self.outdim.tolist()))
@@ -400,6 +437,8 @@ class SOM(object):
 		
 		"""
 		Perform clusetering of neurons in input space
+		cluster_start gives starting points for alogrithm
+		return_object gives k_means instance instead of labels for the mapped elements
 		"""
 		
 		from pyclustering.cluster.kmeans import kmeans
@@ -428,14 +467,14 @@ class SOM(object):
 		return self.cluster_
 
 		
-		
-			
 	def save(self,filename):
 		if '.json' in filename:
 			with open(filename, "w") as f:
 				json.dump(self.weights.tolist(), f)
 		elif '.csv' in filename:
 			np.savetxt(filename, self.weights, delimiter=',')
+		else:
+			raise(ValueError("File needs to be .json or .csv"))
 				
 	def load(self, filename):
 		if '.json' in filename:
@@ -443,37 +482,20 @@ class SOM(object):
 				self.weights = np.asarray(json.load(f))
 		elif '.csv' in filename:
 			self.weights = np.loadtxt(filename,delimiter=",")
+		else:
+			raise(ValueError("File needs to be .json or .csv"))
 			
 	
 			
 class batch_SOM(SOM):
-	def __init__(self,outdim,indim,trainings_set,neighbourhood_function = gauss(2),sigma=2,lerning_rate = 0.2,lerning_rate_decay = 1000,max_epochs = 100,sigma_decay = 100,batch_size=1000,pool_size = 36 ,PCA=False,validate = None,break_condition = None,keys = None,periodic_boundarys=False,random=False,radius_decrease = "exp", lr_decrease = "exp"):
+	def __init__(self,outdim,indim,trainings_set,neighbourhood_function = gauss(2),pool_size = 2 ,PCA=False,periodic_boundarys=False,random=False):
 		
-		super().__init__(outdim,indim,trainings_set,neighbourhood_function = neighbourhood_function,sigma=sigma,lerning_rate = lerning_rate,lerning_rate_decay = lerning_rate_decay,max_epochs = max_epochs,sigma_decay = sigma_decay,PCA=PCA,validate = validate,break_condition = break_condition,keys = keys,periodic_boundarys=periodic_boundarys,random=random,radius_decrease=radius_decrease,lr_decrease=lr_decrease)
+		super().__init__(outdim,indim,trainings_set,neighbourhood_function = neighbourhood_function,PCA=PCA,periodic_boundarys=periodic_boundarys,random=random)
 		
-		self.batch_size = batch_size
 		self.pool_size = pool_size 
 		self.trained_c = False
 	
-	def map_c(self,values):
-		global _c_extension
-		c_pointer = ctypes.POINTER(ctypes.c_double)
-		input_values_pp = (c_pointer * len(values)) ()
 		
-		for i,a in enumerate(values):
-			input_values_pp[i] = (ctypes.c_double * len(a))()
-			for j in range(len(a)):
-				input_values_pp[i][j] = a[j]
-		
-		c_x = ctypes.c_int(self.outdim[0])
-		c_y = ctypes.c_int(self.outdim[1])
-		c_input_dim = ctypes.c_int(self.indim)
-		c_input_size = ctypes.c_int(len(values))
-
-		mapped_values_c = _c_extension.map_from_c(self.weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),input_values_pp,c_x,c_y,c_input_dim,c_input_size)
-		mapped_values = np.ctypeslib.as_array(mapped_values_c,shape=(len(values),2))
-		return mapped_values
-	
 	def train_async(self,prnt=False):
 		epoch = 0
 		while epoch < self.max_epochs:
@@ -486,10 +508,10 @@ class batch_SOM(SOM):
 			else:
 				elements = self.tr_set
 
-			self.weights += self.update_weights_async(self.lerning_rate, elements, self.weights) 
+			self.weights += self.update_weights_async(self.learning_rate, elements, self.weights) 
 			# prepare next epoch
 			epoch += 1
-			self.lerning_rate = self.decay_learning_rate(self.initail_lerning_rate,epoch,self.time_const)
+			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
 			self.sigma = self.decay_variance_async(self.initial_sigma,epoch,self.sigma_time_const)
 			if prnt:
 				print(epoch)
@@ -511,19 +533,22 @@ class batch_SOM(SOM):
 		c_y = ctypes.c_int(self.outdim[1])
 		c_input_dim = ctypes.c_int(self.indim)
 		c_input_size = ctypes.c_int(len(self.tr_set))
-		c_learning_rate = ctypes.c_double(self.lerning_rate)
+		c_learning_rate = ctypes.c_double(self.learning_rate)
 		c_sigma = ctypes.c_double(self.sigma)
-		c_learning_rate_end = ctypes.c_double(self.time_const)
+		c_learning_rate_end = ctypes.c_double(self.lr_end)
 		c_sigma_end = ctypes.c_double(self.sigma_time_const)
-		c_linear = ctypes.c_int(1 if self.lr_decrease == "linear" else 0)
+		c_linear_rad = ctypes.c_int(1 if self.radius_decrease == "linear" else 0)
+		c_linear_lr = ctypes.c_int(1 if self.lr_decrease == "linear" else 0)
+		c_initial_weights = self.weights.copy().ctypes.data_as(ctypes.POINTER(ctypes.c_double)) if self.weights_initialized else ctypes.POINTER(ctypes.c_double)()
+
 		c_batchsize = ctypes.c_int(self.batch_size)
 		c_epochs = ctypes.c_int(self.max_epochs)
 		c_prnt =  ctypes.c_int(prnt)
 		
 		if self.periodic:
-			self.weights_c = _c_extension.train_from_c_periodic(c_x,c_y,c_input_dim,input_values_pp,c_input_size,c_learning_rate,c_sigma,c_learning_rate_end,c_sigma_end,c_linear,c_batchsize,c_epochs,c_prnt)
+			self.weights_c = _c_extension.train_from_c_periodic(c_x,c_y,c_input_dim,input_values_pp,c_initial_weights,c_input_size,c_learning_rate,c_sigma,c_learning_rate_end,c_sigma_end,c_linear_rad,c_linear_lr,c_batchsize,c_epochs,c_prnt)
 		else:
-			self.weights_c = _c_extension.train_from_c(c_x,c_y,c_input_dim,input_values_pp,c_input_size,c_learning_rate,c_sigma,c_learning_rate_end,c_sigma_end,c_linear,c_batchsize,c_epochs,c_prnt)
+			self.weights_c = _c_extension.train_from_c(c_x,c_y,c_input_dim,input_values_pp,c_initial_weights,c_input_size,c_learning_rate,c_sigma,c_learning_rate_end,c_sigma_end,c_linear_rad,c_linear_lr,c_batchsize,c_epochs,c_prnt)
 		self.weights = np.ctypeslib.as_array(self.weights_c, shape=(self.outdim[0]*self.outdim[1],self.indim))
 		self.trained_c = True
 		
@@ -531,17 +556,41 @@ class batch_SOM(SOM):
 		epoch = 0
 		while epoch < self.max_epochs:
 			elements = self.tr_set[np.random.randint(0,len(self.tr_set)-1,self.batch_size)]
-			self.weights = self.update_weights(self.lerning_rate, elements, self.weights) 
+			self.weights = self.update_weights(self.learning_rate, elements, self.weights) 
 			# prepare next epoch
 			epoch += 1
-			self.lerning_rate = self.decay_learning_rate(self.initail_lerning_rate,epoch,self.time_const)
+			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
 			self.sigma = self.decay_variance_async(self.initial_sigma,epoch,self.sigma_time_const)
 			#print(epoch)
 			if prnt:
 				print(epoch)
 
 		
-	def train(self,prnt=False):
+	def train(self,prnt=False,sigma=2,learning_rate = 0.2,learning_rate_end = 0.001,max_epochs = 10000,batch_size = 1000,sigma_end = 1, radius_decrease = "exp", lr_decrease = "exp"):
+		
+		# set all parameters before training
+		self.lr_end = learning_rate_end
+		self.sigma_end = sigma_end
+		self.lr_decrease = lr_decrease
+		self.radius_decrease = radius_decrease
+		
+		if radius_decrease ==  "linear":
+			self.sigma_time_const = ( (learning_rate - learning_rate_end))/max_epochs
+		elif radius_decrease == "exp":
+			self.sigma_time_const = (-1.)*max_epochs  /(np.log(learning_rate_end) - np.log(learning_rate))
+			
+		if lr_decrease ==  "linear":
+			self.time_const = ((sigma - sigma_end))/max_epochs
+		elif lr_decrease == "exp":
+			self.time_const = (-1.)*max_epochs  /(np.log(sigma_end) - np.log(sigma))
+		
+		self.max_epochs = max_epochs
+		self.sigma = sigma
+		self.learning_rate = learning_rate
+		self.initail_learning_rate = learning_rate
+		self.initial_sigma = sigma
+		self.batch_size = batch_size
+		
 		if C_INIT_SUCESS:
 			self._train_c(prnt)
 		else:
@@ -558,7 +607,7 @@ class batch_SOM(SOM):
 		global_arrays.data[1] = self.Grid
 		with Pool(processes=pool_sze) as pool:
 			rad = abs(2*self.sigma**2 * np.log(1e-10))**0.5
-			iterations = [(elements[i*len(elements)//pool_sze:(i+1) * len(elements)//pool_sze],self.lerning_rate,self.sigma,rad,self.periodic,self.outdim) for i in range(pool_sze)]
+			iterations = [(elements[i*len(elements)//pool_sze:(i+1) * len(elements)//pool_sze],self.learning_rate,self.sigma,rad,self.periodic,self.outdim) for i in range(pool_sze)]
 			new_maps = pool.map(f,iterations)
 		
 		
