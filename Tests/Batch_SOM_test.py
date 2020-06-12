@@ -25,14 +25,15 @@ def color_test():
 	# data
 	values = np.random.randint(0, 256, (2000, 3)).astype(np.float64) #colors
 	decrease = "linear"
-	decrease = "exp"
+	# decrease = "exp"
 	# using RGBA - Vectors for simplicity 
 	values /= np.linalg.norm(values, axis=1).reshape(values.shape[0], 1)
 	
 	# som setup
 	# for colors periodic_boundarys = False is simply prettier
 	# PCA give the option to use PCA for initial Neuron distribution
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False)
+	# pool_size only important, if train_async is used
+	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,pool_size=4)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
@@ -40,6 +41,12 @@ def color_test():
 	# same goes for sigma, aka radius
 	start = time.time()
 	som.train(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	# alternative training
+	# uses python, but runs each batch in prarllel
+	# only useful, if batches are large
+	# pool_size parameter give ammount of parallel threads
+	# som.train_async(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	
 	print("Training time:",time.time() - start,"s")
 
 	# unused test-values

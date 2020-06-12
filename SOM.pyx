@@ -23,7 +23,7 @@ try:
 
 	C_INIT_SUCESS = True
 except Exception as e:
-	print("WARNING C-Library could not be imported.\nC-accelerated functions can not be used.\nError as follows %s"%e)
+	print("WARNING C-Library could not be imported.\nC-accelerated functions can not be used.\nConsider train_async instead of train for speed boost, if using large batches.\nError as follows %s"%e)
 	C_INIT_SUCESS = False
 
 def gauss(sgma):
@@ -183,7 +183,7 @@ class SOM(object):
 		# Also called as Best Matching Neuron/Best Matching Unit (BMU)
 		return np.argmin(np.sum((x-W)**2,axis=1))
 
-	def update_weights(self,lr, x, W):
+	def _update_weights(self,lr, x, W):
 		i = self.winning_neuron(x, W)
 		g = self.Grid[i]
 		G = self.Grid
@@ -248,7 +248,7 @@ class SOM(object):
 		epoch = 0
 		while epoch <= self.max_epochs:
 			element = self.tr_set[random.randint(0,len(self.tr_set)-1)]
-			self.weights = self.update_weights(self.learning_rate,element,self.weights)
+			self.weights = self._update_weights(self.learning_rate,element,self.weights)
 			epoch += 1
 			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
 			self.decay_variance(self.initial_sigma,epoch,self.sigma_time_const)
@@ -496,7 +496,31 @@ class batch_SOM(SOM):
 		self.trained_c = False
 	
 		
-	def train_async(self,prnt=False):
+	def train_async(self,prnt=False,sigma=2,learning_rate = 0.2,learning_rate_end = 0.001,max_epochs = 10000,batch_size = 1000,sigma_end = 1, radius_decrease = "exp", lr_decrease = "exp"):
+			
+		# set all parameters before training
+		self.lr_end = learning_rate_end
+		self.sigma_end = sigma_end
+		self.lr_decrease = lr_decrease
+		self.radius_decrease = radius_decrease
+		
+		if radius_decrease ==  "linear":
+			self.sigma_time_const = ( (learning_rate - learning_rate_end))/max_epochs
+		elif radius_decrease == "exp":
+			self.sigma_time_const = (-1.)*max_epochs  /(np.log(learning_rate_end) - np.log(learning_rate))
+			
+		if lr_decrease ==  "linear":
+			self.time_const = ((sigma - sigma_end))/max_epochs
+		elif lr_decrease == "exp":
+			self.time_const = (-1.)*max_epochs  /(np.log(sigma_end) - np.log(sigma))
+		
+		self.max_epochs = max_epochs
+		self.sigma = sigma
+		self.learning_rate = learning_rate
+		self.initail_learning_rate = learning_rate
+		self.initial_sigma = sigma
+		self.batch_size = batch_size
+
 		epoch = 0
 		while epoch < self.max_epochs:
 			if self.batch_size < len(self.tr_set):
@@ -508,7 +532,7 @@ class batch_SOM(SOM):
 			else:
 				elements = self.tr_set
 
-			self.weights += self.update_weights_async(self.learning_rate, elements, self.weights) 
+			self.weights += self._update_weights_async(self.learning_rate, elements, self.weights) 
 			# prepare next epoch
 			epoch += 1
 			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
@@ -556,7 +580,7 @@ class batch_SOM(SOM):
 		epoch = 0
 		while epoch < self.max_epochs:
 			elements = self.tr_set[np.random.randint(0,len(self.tr_set)-1,self.batch_size)]
-			self.weights = self.update_weights(self.learning_rate, elements, self.weights) 
+			self.weights = self._update_weights(self.learning_rate, elements, self.weights) 
 			# prepare next epoch
 			epoch += 1
 			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
@@ -598,7 +622,7 @@ class batch_SOM(SOM):
 	
 		
 		
-	def update_weights_async(self,lr, elements, W):
+	def _update_weights_async(self,lr, elements, W):
 		f = winning_neuron_asyinc if self.batch_size < self.outdim[0] * self.outdim[1] else winning_neuron_asyinc_large_batch
 		
 		pool_sze = self.pool_size
@@ -620,7 +644,7 @@ class batch_SOM(SOM):
 		return new_maps[0][0]/new_maps[0][1]
 
 
-	def update_weights(self,lr, elements, W):
+	def _update_weights(self,lr, elements, W):
 		winners = [self.winning_neuron(x, W) for x in elements]
 		G = self.Grid
 		for index_flat,x in zip(winners,elements):
@@ -637,9 +661,8 @@ class batch_SOM(SOM):
 				self.d = np.sum((G-g)**2,axis=1) 
 			
 			
-			# d = np.sum(np.square(self.Grid - self.Grid[index_flat]), axis=1)
 			# Topological Neighbourhood Function
-			h = lr * np.exp(-(self.d)/(2*self.sigma**2))[:, np.newaxis]  # np.roll(self.distance,index_flat)[:,np.newaxis]
+			h = lr * np.exp(-(self.d)/(2*self.sigma**2))[:, np.newaxis]  
 			W += h*(x - W)
 		return W
 		
