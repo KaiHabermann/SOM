@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 #import <math.h>
 #import <stdlib.h>
 #import <unistd.h>
+
 double norm(double*mat1,double* vec, int x, int y, int dimx, int dimy, int input_dim){
 	int i = x*dimy*input_dim + y * input_dim;
 	double sum = 0; 
@@ -38,6 +41,14 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 	int x_min = 0;
 	int y_min = 0;
 	int ind = 0;
+	
+	// loadingbar setup
+	char * loading_bar = malloc(40);
+	memset(loading_bar,61,39);
+	loading_bar[39] = 0;
+	time_t start_t, end_t;
+	double diff_t;
+
 	
 	weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
 	if (initial_weights == NULL){
@@ -77,6 +88,8 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 	
 	if (linear_lr) lr_dec = ((double) (learning_rate - learning_rate_end))/epochs;
 	else lr_dec = (-1.)*epochs  /(log(learning_rate_end) - log(learning_rate));
+
+	time(&start_t);
 
 	for (int epoch = 0; epoch < epochs; epoch++){
 		// epoch loop
@@ -137,11 +150,21 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 			}
 		}
 	
-	learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
-	sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_lr * exp((-1)*epoch/sigma_dec);
-	
-	if (prnt) printf("Epoch: %i, LR: %lf, SIGMA:%lf\n",epoch,learning_rate,sigma);
+		learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
+		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_lr * exp((-1)*epoch/sigma_dec);
+		
+		if (prnt) {		
+			time(&end_t);	
+			diff_t = difftime(end_t, start_t);
+			diff_t /= epoch;
+			diff_t *= (epochs - epoch);
+			loading_bar[(epoch * 39)/epochs] = '#';
+			printf("%s ETA: %.2fs LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,learning_rate,sigma);
+		}
+
 	}// epoch loop end
+	if (prnt) printf("%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
+	
 	return weights;
 	
 }
@@ -173,6 +196,14 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 	int x_min = 0;
 	int y_min = 0;
 	int ind = 0;
+	
+	// setup loadingbar
+	char * loading_bar = malloc(40);
+	memset(loading_bar,61,39);
+	loading_bar[39] = 0;
+	time_t start_t, end_t;
+	double diff_t;
+	
 	weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
 		if (initial_weights == NULL){
 			weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
@@ -213,9 +244,10 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 		
 	if (linear_lr) lr_dec = ((double) (learning_rate - learning_rate_end))/epochs;
 	else lr_dec = (-1.)*epochs  /(log(learning_rate_end) - log(learning_rate));
-
+	time(&start_t);
 	for (int epoch = 0; epoch < epochs; epoch++){
 		// epoch loop
+		
 		
 		radius = (int) sqrt(fabs(2*sigma*sigma * log(1e-10)));
 		
@@ -277,11 +309,20 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 			}
 		}
 	
-	learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
-	sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_lr * exp((-1)*epoch/sigma_dec);
-	
-	if (prnt) printf("Epoch: %i, LR: %lf, SIGMA:%lf\n",epoch,learning_rate,sigma);
+		learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
+		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_lr * exp((-1)*epoch/sigma_dec);
+		
+		if (prnt) {		
+			time(&end_t);	
+			diff_t = difftime(end_t, start_t);
+			diff_t /= epoch;
+			diff_t *= (epochs - epoch);
+			loading_bar[(epoch * 39)/epochs] = '#';
+			printf("%s ETA: %.2fs LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,learning_rate,sigma);
+		}
 	}// epoch loop end
+	if (prnt) printf("%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
+	
 	return weights;
 	
 }
