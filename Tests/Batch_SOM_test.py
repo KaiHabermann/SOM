@@ -92,7 +92,7 @@ def color_test():
 
 	
 	
-def trained_mnist_test():
+def trained_open_data_test():
 	map_dim = (60,90)
 	values = np.loadtxt("../csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
 	decrease = "linear"
