@@ -15,5 +15,5 @@ esac
 if [ "$machine" = "Mac" ] ; then
 /usr/local/opt/llvm/bin/clang -fPIC -Ofast  -shared -I/usr/local/opt/llvm/include -o libsom.so c_helper.c  -L/usr/local/opt/llvm/lib ;
 else
-    gcc -fPIC -Ofast  -shared -I/usr/local/opt/llvm/include -o -libm libsom.so c_helper.c;
+    gcc -fPIC -Ofast  -shared  -o -libm libsom.so c_helper.c -L/usr/local/opt/llvm/lib;
 fi
