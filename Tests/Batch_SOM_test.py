@@ -107,7 +107,7 @@ def trained_open_data_test():
 	# som.load("../csv_files/trainierte_soms/60x90.csv")
 	
 	# train a new map, if wanted
-	som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=200)
+	som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
 
 	
 	sns.heatmap(som.get_umatrix())
