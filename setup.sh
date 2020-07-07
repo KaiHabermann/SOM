@@ -13,8 +13,8 @@ case "${unameOut}" in
     *)          machine="UNKNOWN:${unameOut}"
 esac
 if [ "$machine" = "Mac" ] ; then
-echo "Mac";
 /usr/local/opt/llvm/bin/clang -fPIC -O3  -shared -I/usr/local/opt/llvm/include -o libsom.so c_helper.c  -L/usr/local/opt/llvm/lib ;
 else
     gcc -fPIC -O3  -shared  -o -libm libsom.so c_helper.c -L/usr/local/opt/llvm/lib;
 fi
+echo $machine;
