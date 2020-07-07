@@ -37,7 +37,6 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 	int rady;
 	start_sigma = sigma;
 	start_lr = learning_rate;
-	
 	int x_min = 0;
 	int y_min = 0;
 	int ind = 0;
@@ -163,7 +162,7 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 		}
 
 	}// epoch loop end
-	if (prnt) printf("%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
+	if (prnt) printf("\n%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
 	
 	return weights;
 	
@@ -192,7 +191,7 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 	
 	start_sigma = sigma;
 	start_lr = learning_rate;
-	
+
 	int x_min = 0;
 	int y_min = 0;
 	int ind = 0;
@@ -239,7 +238,7 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 	// for (int i = 0; i < input_size;i++)printf("(%lf, %lf, %lf)\n",input_values[i][0],input_values[i][1],input_values[i][2]);
 	
 	if (linear_rad) sigma_dec = ((double) (sigma - sigma_end))/epochs;
-		else sigma_dec = (-1.)*epochs  /(log(sigma_end) - log(sigma));
+	else sigma_dec = (-1.)*epochs  /(log(sigma_end) - log(sigma));
 		
 		
 	if (linear_lr) lr_dec = ((double) (learning_rate - learning_rate_end))/epochs;
@@ -321,7 +320,7 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 			printf("%s ETA: %.2fs EPOCH: %d LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,epoch,learning_rate,sigma);
 		}
 	}// epoch loop end
-	if (prnt) printf("%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
+	if (prnt) printf("\n%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
 	
 	return weights;
 	

@@ -560,7 +560,7 @@ class batch_SOM(SOM):
 		c_learning_rate = ctypes.c_double(self.learning_rate)
 		c_sigma = ctypes.c_double(self.sigma)
 		c_learning_rate_end = ctypes.c_double(self.lr_end)
-		c_sigma_end = ctypes.c_double(self.sigma_time_const)
+		c_sigma_end = ctypes.c_double(self.sigma_end)
 		c_linear_rad = ctypes.c_int(1 if self.radius_decrease == "linear" else 0)
 		c_linear_lr = ctypes.c_int(1 if self.lr_decrease == "linear" else 0)
 		c_initial_weights = self.weights.copy().ctypes.data_as(ctypes.POINTER(ctypes.c_double)) if self.weights_initialized else ctypes.POINTER(ctypes.c_double)()
@@ -575,7 +575,6 @@ class batch_SOM(SOM):
 			self.weights_c = _c_extension.train_from_c(c_x,c_y,c_input_dim,input_values_pp,c_initial_weights,c_input_size,c_learning_rate,c_sigma,c_learning_rate_end,c_sigma_end,c_linear_rad,c_linear_lr,c_batchsize,c_epochs,c_prnt)
 		self.weights = np.ctypeslib.as_array(self.weights_c, shape=(self.outdim[0]*self.outdim[1],self.indim))
 		self.trained_c = True
-		
 	def _train(self,prnt=False):
 		epoch = 0
 		while epoch < self.max_epochs:
