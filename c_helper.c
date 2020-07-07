@@ -151,15 +151,15 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 		}
 	
 		learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
-		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_lr * exp((-1)*epoch/sigma_dec);
+		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_sigma * exp((-1)*epoch/sigma_dec);
 		
 		if (prnt) {		
 			time(&end_t);	
 			diff_t = difftime(end_t, start_t);
 			diff_t /= epoch;
-			diff_t *= (epochs - epoch);
+			diff_t *= (epochs - epoch - 1);
 			loading_bar[(epoch * 39)/epochs] = '#';
-			printf("%s ETA: %.2fs LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,learning_rate,sigma);
+			printf("%s ETA: %.2fs EPOCH: %d LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,epoch,learning_rate,sigma);
 		}
 
 	}// epoch loop end
@@ -310,15 +310,15 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 		}
 	
 		learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
-		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_lr * exp((-1)*epoch/sigma_dec);
+		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_sigma * exp((-1)*epoch/sigma_dec);
 		
 		if (prnt) {		
 			time(&end_t);	
 			diff_t = difftime(end_t, start_t);
 			diff_t /= epoch;
-			diff_t *= (epochs - epoch);
+			diff_t *= (epochs - epoch - 1);
 			loading_bar[(epoch * 39)/epochs] = '#';
-			printf("%s ETA: %.2fs LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,learning_rate,sigma);
+			printf("%s ETA: %.2fs EPOCH: %d LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,epoch,learning_rate,sigma);
 		}
 	}// epoch loop end
 	if (prnt) printf("%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);

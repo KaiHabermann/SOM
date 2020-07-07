@@ -40,7 +40,7 @@ def color_test():
 	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 	# same goes for sigma, aka radius
 	start = time.time()
-	som.train(prnt = True,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
+	som.train(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=200)
 	
 	# alternative training
 	# uses python, but runs each batch in prarllel
@@ -104,7 +104,11 @@ def trained_open_data_test():
 	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
 	
 	# no training required, when we load an existing som
-	som.load("../csv_files/trainierte_soms/60x90.csv")
+	# som.load("../csv_files/trainierte_soms/60x90.csv")
+	
+	# train a new map, if wanted
+	som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
+
 	
 	sns.heatmap(som.get_umatrix())
 	plt.ylabel("y")
@@ -127,5 +131,5 @@ def trained_open_data_test():
 		
 
 if __name__ == "__main__":
-	color_test()
-	#trained_mnist_test()
+	# color_test()
+	trained_open_data_test()
