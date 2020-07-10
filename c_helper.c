@@ -361,3 +361,40 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 	return res;
 	
 }
+
+
+int* activation_from_c(double * weights, double** input_values, int dimx, int dimy, int input_dim, int input_size){
+	
+	int* res = malloc(dimx * dimy * sizeof(int));
+	for (int i = 0; i < dimx * dimy;i++) res[i] = 0;
+	
+	double * vec;
+	int x_min,y_min;
+	double value, nrm;
+	for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
+		x_min = 0;
+		y_min = 0;
+		
+		vec = input_values[vec_ind];
+		value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
+		// find minimum
+		for(int x = 0; x < dimx; x++){
+			for(int y = 0; y < dimy; y++){
+				nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
+				if (nrm < value){
+					value = nrm;
+					y_min = y;
+					x_min = x;
+				}
+			}
+		}
+		res[x_min*dimy + y_min] += 1;
+		
+
+	}
+	
+	
+	return res;
+	
+}
+

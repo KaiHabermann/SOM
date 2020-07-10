@@ -104,10 +104,10 @@ def trained_open_data_test():
 	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
 	
 	# no training required, when we load an existing som
-	# som.load("../csv_files/trainierte_soms/60x90.csv")
+	som.load("../csv_files/trainierte_soms/60x90.csv")
 	
 	# train a new map, if wanted
-	som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
+	#som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
 
 	
 	sns.heatmap(som.get_umatrix())
@@ -116,12 +116,8 @@ def trained_open_data_test():
 	plt.title("U-Matrix")
 	plt.show()
 	
-	mapped_values = som.map(values)
-	hit_histogram = np.zeros(map_dim)
 
-	for x,y in mapped_values:
-		hit_histogram[x][y] += 1
-	
+	hit_histogram = som.activation_matrix(values)
 	sns.heatmap(hit_histogram)
 	plt.title("Heatmap der Treffer")
 	plt.ylabel("y")

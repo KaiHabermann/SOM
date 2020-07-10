@@ -20,6 +20,11 @@ try:
 
 	_c_extension.map_from_c.argtypes = (ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)), ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 	_c_extension.map_from_c.restype = ctypes.POINTER(ctypes.c_int)
+	
+	
+	_c_extension.activation_from_c.argtypes = (ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)), ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
+	_c_extension.activation_from_c.restype = ctypes.POINTER(ctypes.c_int)
+
 
 	C_INIT_SUCESS = True
 except Exception as e:
@@ -277,12 +282,42 @@ class SOM(object):
 		mapped_values = np.ctypeslib.as_array(mapped_values_c,shape=(len(values),2))
 		return mapped_values
 
+	def _activation_matrix_c(self,values):
+		global _c_extension
+		c_pointer = ctypes.POINTER(ctypes.c_double)
+		input_values_pp = (c_pointer * len(values)) ()
+		
+		for i,a in enumerate(values):
+			input_values_pp[i] = (ctypes.c_double * len(a))()
+			for j in range(len(a)):
+				input_values_pp[i][j] = a[j]
+		
+		c_x = ctypes.c_int(self.outdim[0])
+		c_y = ctypes.c_int(self.outdim[1])
+		c_input_dim = ctypes.c_int(self.indim)
+		c_input_size = ctypes.c_int(len(values))
+		try:
+			c_weights = self.weights_c
+		except:
+			c_weights = self.weights.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
+		
+		mapped_values_c = _c_extension.activation_from_c(c_weights,input_values_pp,c_x,c_y,c_input_dim,c_input_size)
+		mapped_values = np.ctypeslib.as_array(mapped_values_c,shape=(self.outdim))
+		return mapped_values
+
+	
 
 	def map(self,input_values):
 		if C_INIT_SUCESS:
 			return self._map_c(input_values)
 		else:
 			return [self.Grid[self.winning_neuron(x,self.weights)] for x in input_values]
+			
+	def activation_matrix(self,input_values):
+		if C_INIT_SUCESS:
+			return self._activation_matrix_c(input_values)
+		else:
+			raise(NotImplementedError("Only if C-Backend if available"))
 		
 	
 	def map_array_flat(self,input_values):
