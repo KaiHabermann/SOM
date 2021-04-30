@@ -73,11 +73,15 @@ def color_test():
 	else:
 		for result,color in zip(out,test_values):
 			ax.add_patch(patches.Rectangle(result, 1, 1, facecolor=color, edgecolor='none'))
+	plt.xlabel("x")
+	plt.ylabel("y")
 	plt.show()
 	
 	
 	# show umatrix
 	sns.heatmap(som.get_umatrix())
+	plt.xlabel("x")
+	plt.ylabel("y")
 	plt.title("U-Matrix")
 	plt.show()
 	
@@ -127,5 +131,5 @@ def trained_open_data_test():
 		
 
 if __name__ == "__main__":
-	# color_test()
-	trained_open_data_test()
+	color_test()
+	# trained_open_data_test()
