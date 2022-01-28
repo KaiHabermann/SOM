@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 double norm(double*mat1,double* vec, int x, int y, int dimx, int dimy, int input_dim){
+	// computes the absolute distance for a vector to a vector inside a matrix (mat1 is the matrix represented as simple array of doubles)
 	int i = x*dimy*input_dim + y * input_dim;
 	double sum = 0; 
 	int j = 0;
@@ -390,9 +391,7 @@ int* activation_from_c(double * weights, double** input_values, int dimx, int di
 		}
 		res[x_min*dimy + y_min] += 1;
 		
-
 	}
-	
 	
 	return res;
 	
