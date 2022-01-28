@@ -40,7 +40,8 @@ som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
 # learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
 # lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 # same goes for sigma, aka radius
-som.train(prnt = True,batch_size=500,learning_rate = 1,sigma_end=1.,learning_rate_end = 0.0001,sigma=8,radius_decrease = decrease, lr_decrease = decrease,max_epochs=5000)
+som.train(prnt = True,batch_size=500,learning_rate = 1,sigma_end=1.,learning_rate_end = 0.0001,sigma=8,
+	radius_decrease = decrease, lr_decrease = decrease,max_epochs=5000)
 
 
 # no training required, when we load an existing som
