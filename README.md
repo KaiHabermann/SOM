@@ -7,6 +7,11 @@
 
 - then run git pull a final time to pull all large data files<br/>
 
+## Build:
+- sh build.sh will build the projects cython and c files
+- there is no installation script yet
+- you need to alter you PYTHONPATH manually
+
 ## Exampe code for 60x90 SOM:
 
 ```python
