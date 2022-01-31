@@ -387,7 +387,7 @@ class SOM(object):
 		
 		
 		
-	def get_umatrix(self):
+	def get_umatrix(self,eight_neigbours=False):
 		"""
 		returns universal distance matrix for trained SOM
 		"""
@@ -404,14 +404,15 @@ class SOM(object):
 						umatrix[i][j] += np.sum((weights[i][j] - weights[i][j-1])**2)**0.5
 					if j < self.outdim[1] -1:
 						umatrix[i][j] += np.sum((weights[i][j] - weights[i][j+1])**2)**0.5
-					if i > 0 and j > 0:
-						umatrix[i][j] += np.sum((weights[i][j] - weights[i-1][j-1])**2)**0.5
-					if i < self.outdim[0] - 1 and j > 0:
-						umatrix[i][j] += np.sum((weights[i][j] - weights[i+1][j - 1])**2)**0.5
-					if i > 0 and j < self.outdim[1] - 1:
-						umatrix[i][j] += np.sum((weights[i][j] - weights[i-1][j+1])**2)**0.5
-					if i < self.outdim[0] - 1 and j < self.outdim[1] - 1:
-						umatrix[i][j] += np.sum((weights[i][j] - weights[i+1][j+1])**2)**0.5
+					if eight_neigbours:
+						if i > 0 and j > 0:
+							umatrix[i][j] += np.sum((weights[i][j] - weights[i-1][j-1])**2)**0.5
+						if i < self.outdim[0] - 1 and j > 0:
+							umatrix[i][j] += np.sum((weights[i][j] - weights[i+1][j - 1])**2)**0.5
+						if i > 0 and j < self.outdim[1] - 1:
+							umatrix[i][j] += np.sum((weights[i][j] - weights[i-1][j+1])**2)**0.5
+						if i < self.outdim[0] - 1 and j < self.outdim[1] - 1:
+							umatrix[i][j] += np.sum((weights[i][j] - weights[i+1][j+1])**2)**0.5
 					
 		else:
 			umatrix = np.zeros(tuple(self.outdim.tolist()))
@@ -420,10 +421,11 @@ class SOM(object):
 			umatrix += np.sum((weights - np.roll(weights,(1,   ),axis=(0, )))**2,axis=-1)**0.5
 			umatrix += np.sum((weights - np.roll(weights,(-1,  ),axis=(1, )))**2,axis=-1)**0.5
 			umatrix += np.sum((weights - np.roll(weights,(1,   ),axis=(1, )))**2,axis=-1)**0.5
-			umatrix += np.sum((weights - np.roll(weights,(-1,-1),axis=(0,1)))**2,axis=-1)**0.5
-			umatrix += np.sum((weights - np.roll(weights,(-1,1 ),axis=(0,1)))**2,axis=-1)**0.5
-			umatrix += np.sum((weights - np.roll(weights,(1,-1 ),axis=(0,1)))**2,axis=-1)**0.5
-			umatrix += np.sum((weights - np.roll(weights,(1,1  ),axis=(0,1)))**2,axis=-1)**0.5
+			if eight_neigbours:
+				umatrix += np.sum((weights - np.roll(weights,(-1,-1),axis=(0,1)))**2,axis=-1)**0.5
+				umatrix += np.sum((weights - np.roll(weights,(-1,1 ),axis=(0,1)))**2,axis=-1)**0.5
+				umatrix += np.sum((weights - np.roll(weights,(1,-1 ),axis=(0,1)))**2,axis=-1)**0.5
+				umatrix += np.sum((weights - np.roll(weights,(1,1  ),axis=(0,1)))**2,axis=-1)**0.5
 		return umatrix
 		
 	
