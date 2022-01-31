@@ -128,8 +128,7 @@ def trained_open_data_test():
 	plt.xlabel("x")
 	plt.show()
 
-		
 
 if __name__ == "__main__":
 	color_test()
-	# trained_open_data_test()
+	#trained_open_data_test()
