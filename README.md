@@ -1,4 +1,4 @@
-# SOM_for_ATLAS
+# SOM
 
 ## Setup:
 - not needed if you do not want the data files. In that case only use build.sh
