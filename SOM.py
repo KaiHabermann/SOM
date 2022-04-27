@@ -31,10 +31,8 @@ except Exception as e:
 	print("WARNING C-Library could not be imported.\nC-accelerated functions can not be used.\nConsider train_async instead of train for speed boost, if using large batches.\nError as follows %s"%e)
 	C_INIT_SUCESS = False
 
-def gauss(sgma):
-	def f(x,sgma = sgma):
-		return np.exp(-(x)/(2*sgma**2))
-	return f
+def gauss(d2,sgma):
+	return np.exp(-(d2)/(2*sgma**2))
 
 
 def e_func(k):
@@ -82,8 +80,6 @@ def winning_neuron_asyinc_large_batch(args):
 		
 		return [new_W,new_w_divisor]
 
-
-
 def winning_neuron_asyinc(args):
 	in_vals,lr,sgma,rad,periodic, outdim = args
 	outdim = np.asarray(outdim)
@@ -128,7 +124,7 @@ def winning_neuron_asyinc(args):
 	
 	
 class SOM(object):
-	def __init__(self,outdim,indim,trainings_set,PCA = False,periodic_boundarys = False,random=False,neighbourhood_function = gauss(2)):
+	def __init__(self,outdim,indim,trainings_set,PCA = False,periodic_boundarys = False,random=False,neighbourhood_function = gauss):
 		
 				
 		self.tr_set = trainings_set
@@ -181,14 +177,12 @@ class SOM(object):
 			vec = self.pca.inverse_transform(QT.inverse_transform([index,]))
 			self.weights[int(position[0])*self.outdim[1] + int(position[1])] = vec
 		print('PCA weights initialized. Variance Ratio: %s'%self.pca.explained_variance_ratio_)
-								
-		
 		
 	def winning_neuron(self,x, W):
 		# Also called as Best Matching Neuron/Best Matching Unit (BMU)
 		return np.argmin(np.sum((x-W)**2,axis=1))
 
-	def _update_weights(self,lr, x, W):
+	def _update_weights(self,lr, x, W,sigma):
 		i = self.winning_neuron(x, W)
 		g = self.Grid[i]
 		G = self.Grid
@@ -196,13 +190,13 @@ class SOM(object):
 			### periodic boundry ###
 			delta = np.abs(G - g) 
 			delta = np.where(delta > 0.5 * self.outdim, delta - self.outdim, delta) # decide on wicht way to go
-			self.d = np.sum(delta**2,axis=1)
+			d = np.sum(delta**2,axis=1)
 		
 		else:
 			### no periodic boundry ###
-			self.d = np.sum((G-g)**2,axis=1) 
+			d = np.sum((G-g)**2,axis=1) 
 		# Topological Neighbourhood Function
-		h = lr * self.h(self.d)[:, np.newaxis]
+		h = lr * self.h(d,sigma)[:, np.newaxis]
 		W+=h*(x - W)
 		return W
 
@@ -214,7 +208,7 @@ class SOM(object):
 
 	def decay_variance(self,sigma_initial, epoch, time_const):
 		if self.radius_decrease == "exp": 
-			return gauss(sigma_initial * np.exp(-epoch/time_const))
+			return sigma_initial * np.exp(-epoch/time_const)
 		
 			
 	def decay_variance_async(self,sigma_initial, epoch, time_const):
@@ -226,7 +220,9 @@ class SOM(object):
 	def set_tr_set(self,trainings_set):
 		self.tr_set = trainings_set
 	
-	def train(self,sigma=2,learning_rate = 0.2,learning_rate_end = 0.001,max_epochs = 10000,sigma_end = 1, radius_decrease = "exp", lr_decrease = "exp"):
+	def train(self,sigma=2,learning_rate = 0.2,learning_rate_end = 0.001,
+			max_epochs = 10000,sigma_end = 1, radius_decrease = "exp", 
+			lr_decrease = "exp"):
 		
 		# set all parameters before training
 		self.lr_end = learning_rate_end
@@ -251,13 +247,11 @@ class SOM(object):
 		self.initial_sigma = sigma
 
 		epoch = 0
-		while epoch <= self.max_epochs:
-			element = self.tr_set[random.randint(0,len(self.tr_set)-1)]
-			self.weights = self._update_weights(self.learning_rate,element,self.weights)
-			epoch += 1
+		for epoch in range(self.max_epochs):
+			element = random.choice(self.tr_set)
+			self.weights = self._update_weights(self.learning_rate,element,self.weights,sigma)
 			self.learning_rate = self.decay_learning_rate(self.initail_learning_rate,epoch,self.time_const)
-			self.decay_variance(self.initial_sigma,epoch,self.sigma_time_const)
-			
+			sigma = self.decay_variance(self.initial_sigma,epoch,self.sigma_time_const)
 		
 	def _map_c(self,values):
 		global _c_extension
@@ -304,7 +298,6 @@ class SOM(object):
 		mapped_values_c = _c_extension.activation_from_c(c_weights,input_values_pp,c_x,c_y,c_input_dim,c_input_size)
 		mapped_values = np.ctypeslib.as_array(mapped_values_c,shape=(self.outdim))
 		return mapped_values
-
 	
 
 	def map(self,input_values):
@@ -333,6 +326,8 @@ class SOM(object):
 		return result
 		
 	def filter_for_bbox(self,input_values,points):
+		# wants points as a list of [(x,y,z,...), ]
+		# all values mapped to these points will be returned
 		points = np.asarray(points).transpose()
 		mapped_points = np.asarray(self.map(input_values))
 		mask = np.zeros(len(input_values),dtype=bool)
@@ -382,8 +377,6 @@ class SOM(object):
 		is_neighbour = np.any(abs(x_0-x_1) > 1,axis = 1).astype(np.float64)
 		
 		return np.sum(is_neighbour)/len(is_neighbour)
-		
-	 	
 		
 	def topological_error(self,data):
 		raise(NotImplementedError)
@@ -482,8 +475,6 @@ class SOM(object):
 		from pyclustering.cluster.kmeans import kmeans
 		from pyclustering.cluster.center_initializer import random_center_initializer
 		from pyclustering.utils.metric import type_metric, distance_metric
-		
-		
 					
 		if cluster_start is None:
 			centers_initial = random_center_initializer(self.weights, k).initialize()  	
@@ -526,7 +517,7 @@ class SOM(object):
 	
 			
 class batch_SOM(SOM):
-	def __init__(self,outdim,indim,trainings_set,neighbourhood_function = gauss(2),pool_size = 2 ,PCA=False,periodic_boundarys=False,random=False):
+	def __init__(self,outdim,indim,trainings_set,neighbourhood_function = gauss,pool_size = 2 ,PCA=False,periodic_boundarys=False,random=False):
 		
 		super().__init__(outdim,indim,trainings_set,neighbourhood_function = neighbourhood_function,PCA=PCA,periodic_boundarys=periodic_boundarys,random=random)
 		

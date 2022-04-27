@@ -15,7 +15,7 @@ sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
 from SOM import *
 
-def color_test_batch():
+def color_test():
 	"""
 	Simple SOM Showcase using rgb-color-vectors
 	"""
@@ -34,21 +34,19 @@ def color_test_batch():
 	# PCA give the option to use PCA for initial Neuron distribution (WARNING: this can cause neurons to have values outside of [0,1], 
 	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,pool_size=8)
+	h = lambda x2,sgma: np.exp(-x2/(2*sgma)) # guass
+	som = SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=False,neighbourhood_function=h)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
 	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 	# same goes for sigma, aka radius
 	start = time.time()
-	som.train(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
-	
-	# alternative training
-	# uses python, but runs each batch in prarllel
-	# only useful, if batches are large
-	# pool_size parameter give ammount of parallel threads
-	# som.train_async(prnt = False,batch_size=2000,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=100)
-	
+    
+	som.train(sigma=6,learning_rate = 0.2,learning_rate_end = 0.001,
+			max_epochs = 50000,sigma_end = 1, radius_decrease = "exp", 
+			lr_decrease = "exp")
+
 	print("Training time:",time.time() - start,"s")
 
 	# unused test-values
@@ -93,47 +91,7 @@ def color_test_batch():
 		plt.ylabel("y")
 		plt.title("Verteilung von %s"%["rot","grün","blau"][comp])
 		plt.show()
-
-def trained_open_data_test():
-	map_dim = (60,90)
-	try:
-		path = "../csv_files/2lep_complete.csv"
-		values = np.loadtxt(path,delimiter=",",skiprows=1)
-	except:
-		raise(NotImplementedError("This test needs data installed at %s"%(path,)))
-	decrease = "linear"
-	# decrease = "exp"
 	
-	# som setup
-	# PCA give the option to use PCA for initial Neuron distribution
-	# pool_size only important, if train_async is used
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
-	
-	# no training required, when we load an existing som
-	try:
-		som.load("../csv_files/trainierte_soms/60x90.csv")
-	except:
-		raise(NotImplementedError("This tests needs a pre trained SOM with size 60 x 90"))
-	
-	# train a new map, if wanted
-	#som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
-
-	
-	sns.heatmap(som.get_umatrix())
-	plt.ylabel("y")
-	plt.xlabel("x")
-	plt.title("U-Matrix")
-	plt.show()
-	
-
-	hit_histogram = som.activation_matrix(values)
-	sns.heatmap(hit_histogram)
-	plt.title("Heatmap of Hits")
-	plt.ylabel("y")
-	plt.xlabel("x")
-	plt.show()
-
-
 if __name__ == "__main__":
-	color_test_batch()
+	color_test()
 	#trained_open_data_test()

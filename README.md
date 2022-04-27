@@ -7,6 +7,15 @@
 
 - you need to alter you PYTHONPATH manually<br/>
 
+## Use:
+- SOM class is much more flexible and can accept any neighbourhood function depending on r^2 and a parameter sigma
+
+- Batch_SOM is less felxible, but much faster. Here we train in Batches, meaning, that the update is only performed after an entire batch has been presented. For this class the user can trigger parallel training, but this only is effective for large batches. Large batches are not allways advisable.
+For non parallel training here a dedicated c library is used. This forces the user to use gaussian distances though. To use this speed up for non batched data, one can simply st the batch size to 1 and have a normal training.
+
+- For both forms of training, we can have either linear or exponential decrease of the learning rate and sigma. 
+For how this is done look into the test files in the Tests/ folder
+
 ## Exampe code for 60x90 SOM:
 
 ```python
