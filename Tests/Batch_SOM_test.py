@@ -31,22 +31,23 @@ def color_test():
 	
 	# som setup
 	# for colors periodic_boundarys = False is simply prettier
-	# PCA give the option to use PCA for initial Neuron distribution
+	# PCA give the option to use PCA for initial Neuron distribution (WARNING: this can cause neurons to have values outside of [0,1], 
+	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,pool_size=4)
+	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,pool_size=8)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
 	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 	# same goes for sigma, aka radius
 	start = time.time()
-	som.train(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=200)
+	som.train(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
 	
 	# alternative training
 	# uses python, but runs each batch in prarllel
 	# only useful, if batches are large
 	# pool_size parameter give ammount of parallel threads
-	# som.train_async(prnt = False,batch_size=100,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=500)
+	# som.train_async(prnt = False,batch_size=2000,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=3,radius_decrease = decrease, lr_decrease = decrease,max_epochs=100)
 	
 	print("Training time:",time.time() - start,"s")
 
@@ -58,7 +59,6 @@ def color_test():
 	
 	# Plot
 	fig = plt.figure()
-
 	# setup axes
 	ax = fig.add_subplot(111, aspect='equal')
 	ax.set_xlim((0, map_dim[0]))
@@ -98,7 +98,11 @@ def color_test():
 	
 def trained_open_data_test():
 	map_dim = (60,90)
-	values = np.loadtxt("../csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
+	try:
+		path = "../csv_files/2lep_complete.csv
+		values = np.loadtxt("../csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
+	except:
+		raise(NotImplementedError("This test needs data installed at %s"%("../csv_files/2lep_complete.csv",)))
 	decrease = "linear"
 	# decrease = "exp"
 	
@@ -108,7 +112,10 @@ def trained_open_data_test():
 	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
 	
 	# no training required, when we load an existing som
-	som.load("../csv_files/trainierte_soms/60x90.csv")
+	try:
+		som.load("../csv_files/trainierte_soms/60x90.csv")
+	except:
+		raise(NotImplementedError("This tests needs a pre trained SOM with size 60 x 90"))
 	
 	# train a new map, if wanted
 	#som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
@@ -128,8 +135,7 @@ def trained_open_data_test():
 	plt.xlabel("x")
 	plt.show()
 
-		
 
 if __name__ == "__main__":
 	color_test()
-	# trained_open_data_test()
+	#trained_open_data_test()
