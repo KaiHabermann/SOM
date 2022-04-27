@@ -1,14 +1,5 @@
 # SOM
 
-## Setup:
-- not needed if you do not want the data files. In that case only use build.sh
-
-- setup by installing git lfs<br/>
-
-- then run sh setup.sh <br/>
-
-- then run git pull a final time to pull all large data files<br/>
-
 ## Build:
 - sh build.sh will build the projects cython and c files<br/>
 
