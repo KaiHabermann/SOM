@@ -20,7 +20,7 @@ For how this is done look into the test files in the Tests/ folder
 
 ```python
 	
-from SOM import *
+from SOM import SOM, batch_SOM
 import numpy as np
 import seborn as sns
 import matplotlib.pyplot as plt
