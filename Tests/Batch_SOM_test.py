@@ -91,7 +91,7 @@ def color_test_batch():
 		sns.heatmap(component_plane,linewidth = 0,rasterized=False,cmap=["Reds","Greens","Blues"][comp])
 		plt.xlabel("x")
 		plt.ylabel("y")
-		plt.title("Verteilung von %s"%["rot","grün","blau"][comp])
+		plt.title("Distribution of %s"%["red","green","blue"][comp])
 		plt.show()
 
 def trained_open_data_test():

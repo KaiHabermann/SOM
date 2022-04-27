@@ -42,7 +42,7 @@ def color_test():
 	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 	# same goes for sigma, aka radius
 	start = time.time()
-    
+
 	som.train(sigma=6,learning_rate = 0.2,learning_rate_end = 0.001,
 			max_epochs = 50000,sigma_end = 1, radius_decrease = "exp", 
 			lr_decrease = "exp")
@@ -89,7 +89,7 @@ def color_test():
 		sns.heatmap(component_plane,linewidth = 0,rasterized=False,cmap=["Reds","Greens","Blues"][comp])
 		plt.xlabel("x")
 		plt.ylabel("y")
-		plt.title("Verteilung von %s"%["rot","grün","blau"][comp])
+		plt.title("Distribution of %s"%["red","green","blue"][comp])
 		plt.show()
 	
 if __name__ == "__main__":
