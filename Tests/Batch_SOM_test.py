@@ -98,7 +98,11 @@ def color_test():
 	
 def trained_open_data_test():
 	map_dim = (60,90)
-	values = np.loadtxt("../csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
+	try:
+		path = "../csv_files/2lep_complete.csv
+		values = np.loadtxt("../csv_files/2lep_complete.csv",delimiter=",",skiprows=1)
+	except:
+		raise(NotImplementedError("This test needs data installed at %s"%("../csv_files/2lep_complete.csv",)))
 	decrease = "linear"
 	# decrease = "exp"
 	
@@ -108,7 +112,10 @@ def trained_open_data_test():
 	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
 	
 	# no training required, when we load an existing som
-	som.load("../csv_files/trainierte_soms/60x90.csv")
+	try:
+		som.load("../csv_files/trainierte_soms/60x90.csv")
+	except:
+		raise(NotImplementedError("This tests needs a pre trained SOM with size 60 x 90"))
 	
 	# train a new map, if wanted
 	#som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
