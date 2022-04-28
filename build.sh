@@ -1,5 +1,4 @@
 pip3 install -r requirements.txt 
-python3 setup_SOM.py build_ext --inplace;
 unameOut="$(uname -s)"
 case "${unameOut}" in
     Linux*)     machine=Linux;;
