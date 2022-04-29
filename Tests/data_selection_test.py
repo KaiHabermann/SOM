@@ -16,7 +16,7 @@ from bSOM import batch_SOM
 def get_density(som,data):
     if isinstance(data,str):
         filepath = data
-        data = pd.read_csv(filepath).values[:10000]
+        data = pd.read_csv(filepath).values
         print("Loaded %s with shape %s"%(filepath,data.shape))
     hit_histogram = som.activation_matrix(data)
     density = hit_histogram/np.sum(hit_histogram) 
@@ -41,9 +41,10 @@ def perform_density_fit(main_denstiy,MC_densities,dmain_density):
     regressor.run()
     return regressor.output.beta
 
-def plot_rel_density(wanted_process,MC_densities,weights,minimal_density = 1e-6):
+def plot_rel_density(wanted_index,MC_densities,weights,minimal_density = 1e-6):
     total_density = sum(w*d for w,d in zip(weights,MC_densities))
     mask = total_density != 0
+    wanted_process = MC_densities[wanted_index] * weights[wanted_index]
     relative_density = np.zeros_like(wanted_process)
     relative_density[mask] = wanted_process[mask]/total_density[mask]
     print(relative_density.shape)
@@ -99,7 +100,7 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
     toggle_style()
     plt.show()
 
-    hit_histogram = som.activation_matrix(values[:10000])
+    hit_histogram = som.activation_matrix(values)
     density = hit_histogram/np.sum(hit_histogram)
     ddensity = hit_histogram**0.5/np.sum(hit_histogram)
     sns.heatmap(density)
@@ -115,9 +116,9 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
     MC_densities = [get_density(som,data) for data in MC_datasets]
     weights = perform_density_fit(density,MC_densities,ddensity)
 
-    weights = plot_rel_density(MC_densities[0],MC_densities,weights)
+    relative_density = plot_rel_density(0,MC_densities,weights)
     
-    for name, weight in zip(weights,MC_datasets):
+    for name, weight in zip(MC_datasets,weights):
         print("%s with weight %.2e"%(name,weight))
 
 
