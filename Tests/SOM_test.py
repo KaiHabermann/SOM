@@ -35,7 +35,7 @@ def color_test():
 	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
 	h = lambda x2,sgma: np.exp(-x2/(2*sgma)) # guass
-	som = SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=False,neighbourhood_function=h)
+	som = SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,neighbourhood_function=h)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
@@ -43,9 +43,9 @@ def color_test():
 	# same goes for sigma, aka radius
 	start = time.time()
 
-	som.train(sigma=6,learning_rate = 0.2,learning_rate_end = 0.001,
-			max_epochs = 50000,sigma_end = 1, radius_decrease = "exp", 
-			lr_decrease = "exp")
+	#som.train(sigma=6,learning_rate = 0.2,learning_rate_end = 0.001,
+	#		max_epochs = 50000,sigma_end = 1, radius_decrease = "exp", 
+	#		lr_decrease = "exp")
 
 	print("Training time:",time.time() - start,"s")
 

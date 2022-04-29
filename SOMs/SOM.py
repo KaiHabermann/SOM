@@ -45,22 +45,18 @@ class SOM(object):
 	def PCA_preprocessing(self):
 		from sklearn.decomposition import PCA
 		from sklearn.preprocessing import QuantileTransformer
-		self.pca = PCA(n_components=2)
+		self.pca = PCA(n_components=len(self.outdim))
 		
+		x = self.tr_set
+		clipping_min = np.min(self.tr_set,axis=0)
+		clipping_max = np.max(self.tr_set,axis=0)
+
 		
-		from sklearn.preprocessing import StandardScaler
-		x = StandardScaler().fit_transform(self.tr_set)
-		
-		#getting principle components of all input vectors
-		QT = QuantileTransformer()
-		
+		#getting principle components of all input vectors		
 		principalComponents = self.pca.fit_transform(x)
 		
-		QT.fit(principalComponents)
-		
-		
-		max_PC = np.array([np.max(principalComponents[:,0]),np.max(principalComponents[:,1])])
-		min_PC = np.array([np.min(principalComponents[:,0]),np.min(principalComponents[:,1])])
+		max_PC = np.array([np.max(principalComponents[:,i]) for i in range(len(self.outdim))])
+		min_PC = np.array([np.min(principalComponents[:,i]) for i in range(len(self.outdim))])
 		
 		def transform_sapce(x):
 			x *=  (max_PC - min_PC ) /self.outdim
@@ -71,7 +67,8 @@ class SOM(object):
 		
 		for position in self.Grid:
 			index =transform_sapce(position.astype(np.float64)) # get map postition in pca-space
-			vec = self.pca.inverse_transform(QT.inverse_transform([index,]))
+			vec = self.pca.inverse_transform(index)
+			vec = np.clip(vec,clipping_min,clipping_max)
 			self.weights[int(position[0])*self.outdim[1] + int(position[1])] = vec
 		print('PCA weights initialized. Variance Ratio: %s'%self.pca.explained_variance_ratio_)
 		
