@@ -43,15 +43,15 @@ def color_test_batch():
 	# PCA give the option to use PCA for initial Neuron distribution (WARNING: this can cause neurons to have values outside of [0,1], 
 	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,pool_size=8)
+	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True,pool_size=2)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
 	# lr_decrease gives the function connecting both: "linear" for linear and "exp" for exponential
 	# same goes for sigma, aka radius
 	start = time.time()
-	# som.train(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
-	som.train_async(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
+	som.train(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
+	# som.train_async(prnt = True,batch_size=500,learning_rate = 0.2,sigma_end=1.,learning_rate_end = 0.01,sigma=1.5,radius_decrease = decrease, lr_decrease = decrease,max_epochs=20)
 
 	# alternative training
 	# uses python, but runs each batch in prarllel
