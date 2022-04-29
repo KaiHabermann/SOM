@@ -114,12 +114,16 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
     
     ddensity[ddensity==0] = 1/np.sum(hit_histogram)
     MC_densities = [get_density(som,data) for data in MC_datasets]
+    
+    # if you got the actual weights for each process, you can just use them here
     weights = perform_density_fit(density,MC_densities,ddensity)
 
+    # this can now be used to isolate a dataset
     relative_density = plot_rel_density(0,MC_densities,weights)
     
     for name, weight in zip(MC_datasets,weights):
         print("%s with weight %.2e"%(name,weight))
+    print("Sum: %.2f"%sum(weights))
 
 
 if __name__=="__main__":
