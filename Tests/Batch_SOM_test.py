@@ -13,7 +13,16 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from bSOM import batch_SOM
+from SOMs.bSOM import batch_SOM
+
+def toggle_style():
+    plt.locator_params(axis='y', nbins=10)
+    plt.locator_params(axis='x', nbins=10)
+    plt.ylabel("y",rotation=0)
+    plt.xlabel("x",rotation=0)
+    plt.xticks(rotation=0)
+    plt.yticks(rotation=0)
+
 
 def color_test_batch():
 	"""
@@ -98,4 +107,3 @@ def color_test_batch():
 
 if __name__ == "__main__":
 	color_test_batch()
-	#trained_open_data_test()

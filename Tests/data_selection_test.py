@@ -11,7 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from bSOM import batch_SOM
+from SOMs.bSOM import batch_SOM
 
 def get_density(som,data):
     if isinstance(data,str):
@@ -57,7 +57,7 @@ def plot_rel_density(wanted_index,MC_densities,weights,minimal_density = 1e-6):
 
 
 
-def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
+def relative_density_test(data_path = "csv_files/2lep_complete.csv",
     model_path="csv_files/trainierte_soms/60x90.csv",
     MC_datasets = [ "csv_files/mc_files/HtoWW.csv",
                     "csv_files/mc_files/singletop.csv",
@@ -65,6 +65,12 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
                     "csv_files/mc_files/ttbar.csv",
                     "csv_files/mc_files/WW.csv",
                     "csv_files/mc_files/Ztautau.csv"]):
+    """
+    This tests the capability to get the relative density of a process on the SOM.
+    It requires the user to provide all datasets for subprocesses.
+    The example is done using ATLAS Open Data datasets.
+    The datasets are not included in the package, but can be found in the ATLAS open data in the 2 lepton channel.    
+    """
     map_dim = (60,90)
     try:
         values = np.loadtxt(data_path,delimiter=",",skiprows=1)
@@ -76,8 +82,8 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
     # som setup
     # PCA give the option to use PCA for initial Neuron distribution
     # pool_size only important, if train_async is used
-    som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
-    
+    som = batch_SOM(map_dim,len(values[0]),values,
+            PCA=False,periodic_boundarys=True,pool_size=8)
     
     # no training required, when we load an existing som
     try:
@@ -93,7 +99,6 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
             raise(e)
 
     sns.heatmap(som.get_umatrix())
-
     plt.title("U-Matrix")
     toggle_style()
     plt.show()
@@ -125,4 +130,4 @@ def trained_open_data_test(data_path = "csv_files/2lep_complete.csv",
 
 
 if __name__=="__main__":
-    trained_open_data_test()
+    relative_density_test()

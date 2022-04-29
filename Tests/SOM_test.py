@@ -13,7 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from SOM import *
+from SOMs.SOM import *
 
 def color_test():
 	"""
@@ -94,4 +94,3 @@ def color_test():
 	
 if __name__ == "__main__":
 	color_test()
-	#trained_open_data_test()

@@ -2,7 +2,7 @@ import numpy as np
 from multiprocessing import Pool
 import ctypes
 import helpers.global_arrays as global_arrays
-from SOM import SOM, gauss
+from SOMs.SOM import SOM, gauss
 from helpers.c_init import _c_extension, C_INIT_SUCESS
 
 global_arrays.data = [None,None]
