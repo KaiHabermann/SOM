@@ -4,8 +4,7 @@ import json
 from collections import defaultdict
 from multiprocessing import Pool, Array, get_context
 import ctypes
-from c_init import _c_extension, C_INIT_SUCESS
-import global_arrays
+from helpers.c_init import _c_extension, C_INIT_SUCESS
 from scipy.stats import f, norm,levene, mannwhitneyu
 
 def gauss(d2,sgma):
