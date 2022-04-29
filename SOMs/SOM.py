@@ -1,8 +1,6 @@
 import numpy as np 
 import random
 import json
-from collections import defaultdict
-from multiprocessing import Pool, Array, get_context
 import ctypes
 from helpers.c_init import _c_extension, C_INIT_SUCESS
 from scipy.stats import f, norm,levene, mannwhitneyu
@@ -44,7 +42,6 @@ class SOM(object):
 		
 	def PCA_preprocessing(self):
 		from sklearn.decomposition import PCA
-		from sklearn.preprocessing import QuantileTransformer
 		self.pca = PCA(n_components=len(self.outdim))
 		
 		x = self.tr_set
