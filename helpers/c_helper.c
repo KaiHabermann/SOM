@@ -332,9 +332,9 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 	double * vec;
 	int x_min,y_min;
 	double value, nrm;
-	#pragma omp parallel private(vec,x_min,y_min,value,nrm) num_threads(10)
+	#pragma omp parallel private(vec,x_min,y_min,value,nrm)
 	{
-		#pragma omp for
+		#pragma omp for schedule(dynamic)
 		for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
 			x_min = 0;
 			y_min = 0;
@@ -371,12 +371,12 @@ int* activation_from_c(double * weights, double** input_values, int dimx, int di
 	int x_min,y_min;
 	double value, nrm;
 
-	#pragma omp parallel 
+	#pragma omp parallel private(vec,x_min,y_min,value,nrm)
 	{
 		int private_res[dimx * dimy];
 		memset(&private_res,0,dimx * dimy*sizeof(int));
 
-		#pragma omp for 
+		#pragma omp for schedule(dynamic)
 		for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
 			x_min = 0;
 			y_min = 0;
