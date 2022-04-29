@@ -12,4 +12,6 @@ if [ "$machine" = "Mac" ] ; then
 else
    gcc -fPIC -Ofast  -shared  -o libsom.so c_helper.c ;
 fi
+mkdir -p build;
+mv libsom.so build/libsom.so;
 echo $machine;
