@@ -94,44 +94,6 @@ def color_test_batch():
 		plt.title("Distribution of %s"%["red","green","blue"][comp])
 		plt.show()
 
-def trained_open_data_test():
-	map_dim = (60,90)
-	try:
-		path = "../csv_files/2lep_complete.csv"
-		values = np.loadtxt(path,delimiter=",",skiprows=1)
-	except:
-		raise(NotImplementedError("This test needs data installed at %s"%(path,)))
-	decrease = "linear"
-	# decrease = "exp"
-	
-	# som setup
-	# PCA give the option to use PCA for initial Neuron distribution
-	# pool_size only important, if train_async is used
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True)
-	
-	# no training required, when we load an existing som
-	try:
-		som.load("../csv_files/trainierte_soms/60x90.csv")
-	except:
-		raise(NotImplementedError("This tests needs a pre trained SOM with size 60 x 90"))
-	
-	# train a new map, if wanted
-	#som.train(prnt = True,batch_size=500,learning_rate = 1.0,sigma_end=1.,learning_rate_end = 0.01,sigma=20,radius_decrease = decrease, lr_decrease = decrease,max_epochs=2000)
-
-	
-	sns.heatmap(som.get_umatrix())
-	plt.ylabel("y")
-	plt.xlabel("x")
-	plt.title("U-Matrix")
-	plt.show()
-	
-
-	hit_histogram = som.activation_matrix(values)
-	sns.heatmap(hit_histogram)
-	plt.title("Heatmap of Hits")
-	plt.ylabel("y")
-	plt.xlabel("x")
-	plt.show()
 
 
 if __name__ == "__main__":

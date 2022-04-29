@@ -28,7 +28,7 @@ class SOM(object):
 		training_set: the training data shape = (indim,Ndata)
 		periodic_boundarys: use periodic boundarys?
 		random: choose training data randomly? If False order of training set will be used. If Ndata < Ntraining the system will loop arround.
-		
+		neighbourhood function: f(r^2,sigma) the distance function taking 2 parameters
 		"""
 				
 		self.tr_set = trainings_set
