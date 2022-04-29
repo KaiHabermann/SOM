@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import patches as patches
 import seaborn as sns
+from datetime import datetime
 
 # make sure SOM is in PATH
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -14,12 +15,15 @@ sys.path.insert(0,current_dir)
 from SOMs.bSOM import batch_SOM
 
 def get_density(som,data):
+    t0 = datetime.now()
     if isinstance(data,str):
         filepath = data
         data = pd.read_csv(filepath).values
         print("Loaded %s with shape %s"%(filepath,data.shape))
     hit_histogram = som.activation_matrix(data)
     density = hit_histogram/np.sum(hit_histogram) 
+    dt = datetime.now()- t0
+    print("Time taken %s s"%dt.seconds)
     return density
 
 def toggle_style():

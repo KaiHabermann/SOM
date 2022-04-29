@@ -332,27 +332,29 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 	double * vec;
 	int x_min,y_min;
 	double value, nrm;
-
-	#pragma omp parallel for num_threads(16)
-	for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
-		x_min = 0;
-		y_min = 0;
-		
-		vec = input_values[vec_ind];
-		value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
-		// find minimum
-		for(int x = 0; x < dimx; x++){
-			for(int y = 0; y < dimy; y++){
-				nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
-				if (nrm < value){
-					value = nrm;
-					y_min = y;
-					x_min = x;
+	#pragma omp parallel private(vec,x_min,y_min,value,nrm) num_threads(10)
+	{
+		#pragma omp for
+		for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
+			x_min = 0;
+			y_min = 0;
+			
+			vec = input_values[vec_ind];
+			value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
+			// find minimum
+			for(int x = 0; x < dimx; x++){
+				for(int y = 0; y < dimy; y++){
+					nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
+					if (nrm < value){
+						value = nrm;
+						y_min = y;
+						x_min = x;
+					}
 				}
 			}
+			res[2*vec_ind] = x_min;
+			res[2*vec_ind +1 ] = y_min;
 		}
-		res[2*vec_ind] = x_min;
-		res[2*vec_ind +1 ] = y_min;
 	}
 
 	return res;
@@ -368,25 +370,38 @@ int* activation_from_c(double * weights, double** input_values, int dimx, int di
 	double * vec;
 	int x_min,y_min;
 	double value, nrm;
-	for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
-		x_min = 0;
-		y_min = 0;
-		
-		vec = input_values[vec_ind];
-		value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
-		// find minimum
-		for(int x = 0; x < dimx; x++){
-			for(int y = 0; y < dimy; y++){
-				nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
-				if (nrm < value){
-					value = nrm;
-					y_min = y;
-					x_min = x;
+
+	#pragma omp parallel 
+	{
+		int private_res[dimx * dimy];
+		memset(&private_res,0,dimx * dimy*sizeof(int));
+
+		#pragma omp for 
+		for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
+			x_min = 0;
+			y_min = 0;
+			vec = input_values[vec_ind];
+			value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
+			// find minimum
+			for(int x = 0; x < dimx; x++){
+				for(int y = 0; y < dimy; y++){
+					nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
+					if (nrm < value){
+						value = nrm;
+						y_min = y;
+						x_min = x;
+					}
 				}
 			}
+			private_res[x_min*dimy + y_min] += 1;
 		}
-		res[x_min*dimy + y_min] += 1;
-		
+
+		#pragma omp critical
+		{
+			for(int n=0; n<dimx * dimy; n++) {
+				res[n] += private_res[n];
+			}
+		}
 	}
 	
 	return res;
