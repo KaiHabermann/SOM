@@ -47,10 +47,8 @@ def plot_rel_density(wanted_index,MC_densities,weights,minimal_density = 1e-6):
     wanted_process = MC_densities[wanted_index] * weights[wanted_index]
     relative_density = np.zeros_like(wanted_process)
     relative_density[mask] = wanted_process[mask]/total_density[mask]
-    print(relative_density.shape)
     # set all bins with too little data to 0
     relative_density[wanted_process < minimal_density] = 0
-    print(relative_density.shape)
     sns.heatmap(relative_density)
     toggle_style()
     plt.show()
