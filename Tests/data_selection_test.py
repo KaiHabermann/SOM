@@ -83,7 +83,7 @@ def relative_density_test(data_path = "csv_files/2lep_complete.csv",
     # PCA give the option to use PCA for initial Neuron distribution
     # pool_size only important, if train_async is used
     som = batch_SOM(map_dim,len(values[0]),values,
-            PCA=False,periodic_boundarys=True,pool_size=8)
+            PCA=True,periodic_boundarys=True,pool_size=8)
     
     # no training required, when we load an existing som
     try:
@@ -131,3 +131,4 @@ def relative_density_test(data_path = "csv_files/2lep_complete.csv",
 
 if __name__=="__main__":
     relative_density_test()
+    #relative_density_test(model_path=None)

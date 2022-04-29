@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <omp.h>
 
 double norm(double*mat1,double* vec, int x, int y, int dimx, int dimy, int input_dim){
 	// computes the absolute distance for a vector to a vector inside a matrix (mat1 is the matrix represented as simple array of doubles)
@@ -291,11 +292,7 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 					temporary_divisors[x*dimy+y] += gauss;
 				}
 			}
-		
 
-			
-			
-			
 		}// batch loop end
 		for (int i = 0; i < dimx; i++) {
 			for (int j = 0; j < dimy; j++){
@@ -335,6 +332,8 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 	double * vec;
 	int x_min,y_min;
 	double value, nrm;
+
+	#pragma omp parallel for num_threads(4)
 	for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
 		x_min = 0;
 		y_min = 0;
@@ -354,11 +353,8 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 		}
 		res[2*vec_ind] = x_min;
 		res[2*vec_ind +1 ] = y_min;
-		
-
 	}
-	
-	
+
 	return res;
 	
 }
