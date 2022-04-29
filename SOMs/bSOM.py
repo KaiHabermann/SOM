@@ -1,17 +1,13 @@
 import numpy as np 
 from multiprocessing import Pool
 import ctypes
-import helpers.global_arrays as global_arrays
 from SOMs.SOM import SOM, gauss
 from helpers.c_init import _c_extension, C_INIT_SUCESS
 
-global_arrays.data = [None,None]
 
 def winning_neuron_asyinc_large_batch(args):
-		in_vals,lr,sgma,rad,periodic, outdim = args
+		in_vals,lr,sgma,rad,periodic, outdim,G,W = args
 		outdim = np.asarray(outdim)
-		W = global_arrays.data[0] 
-		G = global_arrays.data[1] 
 
 		# new_W is the updated W for after the batch
 		# the temp version is needed, because we are in multiprocess
@@ -43,8 +39,7 @@ def winning_neuron_asyinc_large_batch(args):
 				d = np.sum((G-g)**2,axis=1)
 
 			# this value limits the influence a hit has on its sourrounding
-			# 5 sigma is taken as set gaussian to 0
-			limit = d < rad * 5
+			limit = d < rad 
 			# d = np.sum(np.square(self.Grid - self.Grid[index_flat]), axis=1)
 			# Topological Neighbourhood Function
 			# functions can not be pickeld, so we can not use a user defined function here
@@ -56,17 +51,15 @@ def winning_neuron_asyinc_large_batch(args):
 
 def winning_neuron_asyinc(args):
 	# standard batch som algorithm
-	in_vals,lr,sgma,rad,periodic, outdim = args
+	in_vals,lr,sgma,rad,periodic, outdim,G,W = args
 	outdim = np.asarray(outdim)
-	W = global_arrays.data[0] 
-	G = global_arrays.data[1] 
 	new_W = np.zeros(W.shape)
 	new_w_divisor = np.zeros(W.shape[:-1])[:, np.newaxis]
 	a = []
 	
 	for x in in_vals:
 		a.append(np.argmin(np.sum((x-W)**2,axis=1)))
-	if rad > 0.2: # min distance is 1 and we have the 5 sigma rule
+	if rad > 1: # min distance is 1 
 		for index_flat,x in zip(a,in_vals):
 			g = G[index_flat]
 					
@@ -181,6 +174,7 @@ class batch_SOM(SOM):
 			self.weights_c = _c_extension.train_from_c(c_x,c_y,c_input_dim,input_values_pp,c_initial_weights,c_input_size,c_learning_rate,c_sigma,c_learning_rate_end,c_sigma_end,c_linear_rad,c_linear_lr,c_batchsize,c_epochs,c_prnt)
 		self.weights = np.ctypeslib.as_array(self.weights_c, shape=(self.outdim[0]*self.outdim[1],self.indim))
 		self.trained_c = True
+
 	def _train(self,prnt=False):
 		epoch = 0
 		while epoch < self.max_epochs:
@@ -225,17 +219,15 @@ class batch_SOM(SOM):
 			self._train(prnt)
 	
 	def _update_weights_async(self,lr, elements, W):
+		# decide which function is the faster one
 		f = winning_neuron_asyinc if self.batch_size < self.outdim[0] * self.outdim[1] else winning_neuron_asyinc_large_batch
 		
 		pool_sze = self.pool_size
 		#print(len(shaerd_weights))
-		global_arrays.data[0] = W
-		global_arrays.data[1] = self.Grid
 		with Pool(processes=pool_sze) as pool:
-			rad = abs(2*self.sigma**2 * np.log(1e-10))**0.5
-			iterations = [(elements[i*len(elements)//pool_sze:(i+1) * len(elements)//pool_sze],self.learning_rate,self.sigma,rad,self.periodic,self.outdim) for i in range(pool_sze)]
+			rad = 5*self.sigma
+			iterations = [(elements[i*len(elements)//pool_sze:(i+1) * len(elements)//pool_sze],self.learning_rate,self.sigma,rad,self.periodic,self.outdim,self.Grid,W) for i in range(pool_sze)]
 			new_maps = pool.map(f,iterations)
-		
 		
 		for new_map in new_maps[1:]:
 			new_maps[0][0] += new_map[0]

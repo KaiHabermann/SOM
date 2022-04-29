@@ -94,7 +94,6 @@ class SOM(object):
 			delta = np.abs(G - g) 
 			delta = np.where(delta > 0.5 * self.outdim, delta - self.outdim, delta) # decide on wicht way to go
 			d = np.sum(delta**2,axis=1)
-		
 		else:
 			### no periodic boundry ###
 			d = np.sum((G-g)**2,axis=1) 
@@ -202,7 +201,6 @@ class SOM(object):
 		mapped_values = np.ctypeslib.as_array(mapped_values_c,shape=(self.outdim))
 		return mapped_values
 	
-
 	def map(self,input_values):
 		if C_INIT_SUCESS:
 			return self._map_c(input_values)
@@ -283,8 +281,6 @@ class SOM(object):
 		
 	def topological_error(self,data):
 		raise(NotImplementedError)
-		
-		
 		
 	def get_umatrix(self):
 		"""
