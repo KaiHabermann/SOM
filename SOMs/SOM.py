@@ -14,10 +14,6 @@ def e_func(k):
 	return lambda x: np.exp(-k*abs(x))
 def eins(x):
 	return x
-	
-def winning_neuron_async_c(args):
-	raise NotImplementedError("Async c accelerated training not yet available")
-
 
 class SOM(object):
 	def __init__(self,outdim,indim,trainings_set,PCA = False,periodic_boundarys = False,random=False,neighbourhood_function = gauss):
