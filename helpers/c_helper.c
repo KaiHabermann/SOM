@@ -333,7 +333,7 @@ int* map_from_c(double * weights, double** input_values, int dimx, int dimy, int
 	int x_min,y_min;
 	double value, nrm;
 
-	#pragma omp parallel for num_threads(4)
+	#pragma omp parallel for num_threads(16)
 	for (int vec_ind = 0; vec_ind < input_size; vec_ind++){
 		x_min = 0;
 		y_min = 0;
