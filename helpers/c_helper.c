@@ -174,9 +174,6 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_values,double* initial_weights, int input_size, double learning_rate, double sigma, double learning_rate_end, double sigma_end,int linear_rad, int linear_lr, int batchsize, int epochs,int prnt){
 	double *weights;
 	double sigma_dec, lr_dec, start_lr, start_sigma, gauss;
-	
-	
-	
 	double *temporay_weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
 	double *temporary_divisors = (double*) malloc(dimx*dimy*sizeof(double));
 	double * vec;
@@ -232,11 +229,6 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 			}
 		}
 
-
-
-
-
-	
 	// for (int i = 0; i < input_size;i++)printf("(%lf, %lf, %lf)\n",input_values[i][0],input_values[i][1],input_values[i][2]);
 	
 	if (linear_rad) sigma_dec = ((double) (sigma - sigma_end))/epochs;
@@ -264,17 +256,31 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 			vec = input_values[vec_ind];
 			value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
 			// find minimum
+			#pragma omp parallel private(nrm,value)
+			{	
+				int value_private = value;
+				int x_min_p = 0;
+				int y_min_p = 0;
+			#pragma omp for schedule(dynamic)
 			for(int x = 0; x < dimx; x++){
 				for(int y = 0; y < dimy; y++){
 					nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
-					if (nrm < value){
-						value = nrm;
-						y_min = y;
-						x_min = x;
+					if (nrm < value_private){
+						value_private = nrm;
+						y_min_p = y;
+						x_min_p = x;
 					}
 				}
 			}
-			
+			#pragma omp critical
+			{
+				if ( value < 0 || value > value_private){
+					value = value_private;
+					x_min = x_min_p;
+					y_min = y_min_p;
+				}
+			}
+		}
 			
 			for(int x = 0; x < dimx; x++){
 				for(int y = 0; y < dimy; y++){
@@ -298,7 +304,6 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 			for (int j = 0; j < dimy; j++){
 				if (temporary_divisors[i*dimy + j] != 0){
 					for (int k = 0; k < input_dim; k++){
-						
 						weights[i*dimy* input_dim + j * input_dim + k] = (weights[i*dimy* input_dim + j * input_dim + k] + learning_rate *temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j] ) / (1.+learning_rate);
 					} 
 				}
