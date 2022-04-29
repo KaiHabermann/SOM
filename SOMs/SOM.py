@@ -62,8 +62,6 @@ class SOM(object):
 		max_PC = np.array([np.max(principalComponents[:,0]),np.max(principalComponents[:,1])])
 		min_PC = np.array([np.min(principalComponents[:,0]),np.min(principalComponents[:,1])])
 		
-		
-		
 		def transform_sapce(x):
 			x *=  (max_PC - min_PC ) /self.outdim
 			x +=  min_PC
