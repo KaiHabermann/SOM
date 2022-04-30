@@ -1,1 +1,1 @@
-./build/libsom.so
+include ./build/libsom.so
