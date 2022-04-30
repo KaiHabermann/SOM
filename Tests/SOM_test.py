@@ -13,7 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from SOM.SOM import *
+from SOM import som, gauss
 
 def color_test():
 	"""
@@ -35,7 +35,7 @@ def color_test():
 	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
 	h = lambda x2,sgma: np.exp(-x2/(2*sgma)) # guass
-	som = som(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,neighbourhood_function=h)
+	my_som = som(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,neighbourhood_function=h)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
@@ -43,7 +43,7 @@ def color_test():
 	# same goes for sigma, aka radius
 	start = time.time()
 
-	#som.train(sigma=6,learning_rate = 0.2,learning_rate_end = 0.001,
+	#my_som.train(sigma=6,learning_rate = 0.2,learning_rate_end = 0.001,
 	#		max_epochs = 50000,sigma_end = 1, radius_decrease = "exp", 
 	#		lr_decrease = "exp")
 
@@ -53,7 +53,7 @@ def color_test():
 	# get mapped as example, but wont be used
 	test_values = np.random.randint(0, 256, (5000, 3)).astype(np.float64)
 	test_values /=  np.linalg.norm(test_values, axis=1).reshape(test_values.shape[0], 1)
-	out = som.map(test_values)
+	out = my_som.map(test_values)
 	
 	# Plot
 	fig = plt.figure()
@@ -66,8 +66,8 @@ def color_test():
 	show_neurons = True
 	
 	if show_neurons:
-		for i,neuron in enumerate(som.weights):
-			ax.add_patch(patches.Rectangle(som.Grid[i], 1, 1, facecolor=neuron, edgecolor='none'))
+		for i,neuron in enumerate(my_som.weights):
+			ax.add_patch(patches.Rectangle(my_som.Grid[i], 1, 1, facecolor=neuron, edgecolor='none'))
 	else:
 		for result,color in zip(out,test_values):
 			ax.add_patch(patches.Rectangle(result, 1, 1, facecolor=color, edgecolor='none'))
@@ -77,7 +77,7 @@ def color_test():
 	
 	
 	# show umatrix
-	sns.heatmap(som.get_umatrix())
+	sns.heatmap(my_som.get_umatrix())
 	plt.xlabel("x")
 	plt.ylabel("y")
 	plt.title("U-Matrix")
@@ -85,7 +85,7 @@ def color_test():
 	
 	# show component planes
 	for comp in range(3):
-		component_plane = som.weights[:,comp].reshape((map_dim))
+		component_plane = my_som.weights[:,comp].reshape((map_dim))
 		sns.heatmap(component_plane,linewidth = 0,rasterized=False,cmap=["Reds","Greens","Blues"][comp])
 		plt.xlabel("x")
 		plt.ylabel("y")

@@ -12,7 +12,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from SOMs.bSOM import batch_SOM
+from SOM.bSOM import bsom
 
 def get_density(som,data):
     t0 = datetime.now()
@@ -86,7 +86,7 @@ def relative_density_test(data_path = "csv_files/2lep_complete.csv",
     # som setup
     # PCA give the option to use PCA for initial Neuron distribution
     # pool_size only important, if train_async is used
-    som = batch_SOM(map_dim,len(values[0]),values,
+    som = bsom(map_dim,len(values[0]),values,
             PCA=True,periodic_boundarys=True,pool_size=8)
     
     # no training required, when we load an existing som
