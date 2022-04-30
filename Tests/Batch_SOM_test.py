@@ -85,7 +85,6 @@ def color_test_batch():
 			ax.add_patch(patches.Rectangle(result, 1, 1, facecolor=color, edgecolor='none'))
 	plt.xlabel("x")
 	plt.ylabel("y")
-	plt.savefig("Temp.png")
 	plt.show()
 	
 	
