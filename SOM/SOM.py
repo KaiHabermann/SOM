@@ -7,7 +7,6 @@ from scipy.stats import f, norm,levene, mannwhitneyu
 
 def gauss(d2,sgma):
 	return np.exp(-(d2)/(2*sgma**2))
-
 def e_func(k):
 	return lambda x: np.exp(-k*abs(x))
 def eins(x):
@@ -99,7 +98,6 @@ class som(object):
 	def decay_variance(self,sigma_initial, epoch, time_const):
 		if self.radius_decrease == "exp": 
 			return sigma_initial * np.exp(-epoch/time_const)
-		
 			
 	def decay_variance_async(self,sigma_initial, epoch, time_const):
 		if self.radius_decrease == "exp":
@@ -199,7 +197,11 @@ class som(object):
 		if C_INIT_SUCESS:
 			return self._activation_matrix_c(input_values)
 		else:
-			raise(NotImplementedError("Only if C-Backend if available"))
+			positions = self.map(input_values)
+			mat = np.zeros(self.outdim)
+			for p in positions:
+				mat[p] += 1
+			#raise(NotImplementedError("Only if C-Backend if available"))
 		
 	
 	def map_array_flat(self,input_values):
