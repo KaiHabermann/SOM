@@ -1,6 +1,6 @@
 import setuptools
 
-packages = ["SOM","Tests"]
+packages = ["SOM","Tests","helpers"]
 
 setuptools.setup(
     name="SOM",
