@@ -198,9 +198,10 @@ class som(object):
 			return self._activation_matrix_c(input_values)
 		else:
 			positions = self.map(input_values)
-			mat = np.zeros(self.outdim)
+			mat = np.zeros(np.prod(self.outdim))
 			for p in positions:
 				mat[p] += 1
+			return mat.reshape(self.outdim)
 			#raise(NotImplementedError("Only if C-Backend if available"))
 		
 	
