@@ -198,10 +198,10 @@ class som(object):
 			return self._activation_matrix_c(input_values)
 		else:
 			positions = self.map(input_values)
-			mat = np.zeros(np.prod(self.outdim))
+			mat = np.zeros(self.outdim)
 			for p in positions:
-				mat[p] += 1
-			return mat.reshape(self.outdim)
+				mat[tuple(p)] += 1
+			return mat
 			#raise(NotImplementedError("Only if C-Backend if available"))
 	
 	def map_array_flat(self,input_values):
