@@ -1,6 +1,8 @@
 # SOM
 
 ## Build:
+- You will need to have gcc and openmp installed. Even if you dont want parallelism for training, the mapping via c-compiled code will still be done in parallel using openmp.
+
 - sh build.sh will build the projects cython and c files<br/>
 
 - flag -p while building will activate parallel training. This is not recomended, since the overhead is usually way more than the speed up. <br/>
