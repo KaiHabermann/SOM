@@ -25,8 +25,8 @@ if [ "$machine" = "Mac" ] ; then
 else
    gcc -fPIC -O3 -shared -fopenmp -o libsom.so helpers/$file ;
 fi
-rm -rf ./so_files;
-mkdir -p ./so_files;
-mv libsom.so so_files/libsom.so;
+rm -rf ./SOM/so_files;
+mkdir -p ./SOM/so_files;
+mv libsom.so SOM/so_files/libsom.so;
 echo gcc -fPIC $optimize -shared -fopenmp -o libsom.so helpers/$file ;
 echo $machine;
