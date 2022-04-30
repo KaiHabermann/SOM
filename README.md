@@ -7,6 +7,8 @@
 
 - flag -p while building will activate parallel training. This is not recomended, since the overhead is usually way more than the speed up. <br/>
 
+- after c files are build use sudo python3 setup.py install to create global package<br/>
+
 - there is no installation script yet<br/>
 
 - you need to alter you PYTHONPATH manually<br/>

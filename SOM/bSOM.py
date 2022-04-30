@@ -88,7 +88,7 @@ def winning_neuron_asyinc(args):
 
 	return [new_W,new_w_divisor]
 
-class batch_SOM(som):
+class bsom(som):
 	def __init__(self,outdim,indim,trainings_set,pool_size = 2 ,PCA=False,periodic_boundarys=False,random=False):
 		
 		super().__init__(outdim,indim,trainings_set,neighbourhood_function = None,PCA=PCA,periodic_boundarys=periodic_boundarys,random=random)

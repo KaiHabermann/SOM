@@ -13,7 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from SOM.bSOM import batch_SOM
+from SOM import bsom
 
 def toggle_style():
     plt.locator_params(axis='y', nbins=10)
@@ -43,7 +43,7 @@ def color_test_batch():
 	# PCA give the option to use PCA for initial Neuron distribution (WARNING: this can cause neurons to have values outside of [0,1], 
 	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
-	som = batch_SOM(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True,pool_size=2)
+	som = bsom(map_dim,len(values[0]),values,PCA=False,periodic_boundarys=True,pool_size=2)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
