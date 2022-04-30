@@ -203,7 +203,6 @@ class som(object):
 				mat[p] += 1
 			return mat.reshape(self.outdim)
 			#raise(NotImplementedError("Only if C-Backend if available"))
-		
 	
 	def map_array_flat(self,input_values):
 		result = np.zeros(len(input_values),dtype=np.int)
