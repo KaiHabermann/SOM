@@ -7,3 +7,4 @@ README.md.tmp.html
 *.egg*
 /build
 *.so
+/so_files
