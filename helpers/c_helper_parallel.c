@@ -139,8 +139,8 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 			for (int j = 0; j < dimy; j++){
 				if (temporary_divisors[i*dimy + j] != 0){
 					for (int k = 0; k < input_dim; k++){
-						weights[i*dimy* input_dim + j * input_dim + k] += learning_rate *(temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j]  - weights[i*dimy* input_dim + j * input_dim + k]);
-						//weights[i*dimy* input_dim + j * input_dim + k] = (weights[i*dimy* input_dim + j * input_dim + k] + learning_rate *temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j] ) / (1.+learning_rate);
+						
+						weights[i*dimy* input_dim + j * input_dim + k] = (weights[i*dimy* input_dim + j * input_dim + k] + learning_rate *temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j] ) / (1.+learning_rate);
 					} 
 				}
 				
@@ -170,8 +170,6 @@ double* train_from_c(int dimx, int dimy, int input_dim,double** input_values,dou
 double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_values,double* initial_weights, int input_size, double learning_rate, double sigma, double learning_rate_end, double sigma_end,int linear_rad, int linear_lr, int batchsize, int epochs,int prnt){
 	double *weights;
 	double sigma_dec, lr_dec, start_lr, start_sigma, gauss;
-	double *temporay_weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
-	double *temporary_divisors = (double*) malloc(dimx*dimy*sizeof(double));
 	double * vec;
 	double nrm;
 	double value;
@@ -198,116 +196,118 @@ double* train_from_c_periodic(int dimx, int dimy, int input_dim,double** input_v
 	time_t start_t, end_t;
 	double diff_t;
 	
-	weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
-		if (initial_weights == NULL){
-			weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
-			for (int i = 0; i < dimx; i++) {
-				for (int j = 0; j < dimy; j++){
-					ind = rand()%input_size;
-					//printf("%i, %i\n",ind,input_dim);
-					for (int k = 0; k < input_dim; k++){
-						
-						weights[i*dimy* input_dim + j * input_dim + k] = input_values[ind][k];
-					} 
-				}
-			}
-		}
-		else{
-			weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
-			for (int i = 0; i < dimx; i++) {
-				for (int j = 0; j < dimy; j++){
-					//printf("%i, %i\n",ind,input_dim);
-					for (int k = 0; k < input_dim; k++){
-						
-						weights[i*dimy* input_dim + j * input_dim + k] = initial_weights[i*dimy* input_dim + j * input_dim + k];
-					} 
-				}
-			}
-		}
+    double *temporay_weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
+	double *temporary_divisors = (double*) malloc(dimx*dimy*sizeof(double));
+    weights = (double*) malloc(dimx*dimy*input_dim*sizeof(double));
+
+    if (initial_weights == NULL){
+        for (int i = 0; i < dimx; i++) {
+            for (int j = 0; j < dimy; j++){
+                ind = rand()%input_size;
+                //printf("%i, %i\n",ind,input_dim);
+                for (int k = 0; k < input_dim; k++){
+                    
+                    weights[i*dimy* input_dim + j * input_dim + k] = input_values[ind][k];
+                } 
+            }
+        }
+    }
+    else{
+        for (int i = 0; i < dimx; i++) {
+            for (int j = 0; j < dimy; j++){
+                //printf("%i, %i\n",ind,input_dim);
+                for (int k = 0; k < input_dim; k++){
+                    
+                    weights[i*dimy* input_dim + j * input_dim + k] = initial_weights[i*dimy* input_dim + j * input_dim + k];
+                } 
+            }
+        }
+    }
 
 	// for (int i = 0; i < input_size;i++)printf("(%lf, %lf, %lf)\n",input_values[i][0],input_values[i][1],input_values[i][2]);
 	
 	if (linear_rad) sigma_dec = ((double) (sigma - sigma_end))/epochs;
 	else sigma_dec = (-1.)*epochs  /(log(sigma_end) - log(sigma));
 		
+		
 	if (linear_lr) lr_dec = ((double) (learning_rate - learning_rate_end))/epochs;
 	else lr_dec = (-1.)*epochs  /(log(learning_rate_end) - log(learning_rate));
 	time(&start_t);
-	for (int epoch = 0; epoch < epochs; epoch++){
-		// epoch loop
-		
-		
-		radius = (int) 5*sigma;
-		
-		for (int i = 0; i < dimx*dimy*input_dim; i++) temporay_weights[i] = 0;
-		for (int i = 0; i < dimx*dimy; i++) temporary_divisors[i] = 0;
-		
-		max_vec_ind = (input_size < (epoch * batchsize )%input_size+ batchsize) ? input_size: ((epoch * batchsize)%input_size + batchsize);
+    
+    for (int epoch = 0; epoch < epochs; epoch++){
+    // epoch loop
+        
+        radius = (int) 5*sigma;
+        max_vec_ind = (input_size < (epoch * batchsize )%input_size+ batchsize) ? input_size: ((epoch * batchsize)%input_size + batchsize);
+        for (int i = 0; i < dimx*dimy*input_dim; i++) temporay_weights[i] = 0;
+        for (int i = 0; i < dimx*dimy; i++) temporary_divisors[i] = 0;
+        
+        for (int vec_ind = (epoch*batchsize)%input_size; vec_ind < max_vec_ind; vec_ind++){
+            // batch loop
+            x_min = 0;
+            y_min = 0;
+            
+            vec = input_values[vec_ind];
+            value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
+            // find minimum
+            for(int x = 0; x < dimx; x++){
+                for(int y = 0; y < dimy; y++){
+                    nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
+                    if (nrm < value){
+                        value = nrm;
+                        y_min = y;
+                        x_min = x;
+                    }
+                }
+            }
+            #pragma omp parallel for private(x_diff,y_diff,nrm,gauss)
+            for(int x = 0; x < dimx; x++){
+                for(int y = 0; y < dimy; y++){
+                    x_diff = (x-x_min);
+                    y_diff = (y-y_min);
+                    y_diff = y_diff > dimy/2 ? abs(y_diff - dimy) : y_diff;
+                    x_diff = x_diff > dimx/2 ? abs(x_diff - dimx) : x_diff;
 
-		for (int vec_ind = (epoch*batchsize)%input_size; vec_ind < max_vec_ind; vec_ind++){
-			// batch loop
-			x_min = 0;
-			y_min = 0;
-			
-			vec = input_values[vec_ind];
-			value = norm(weights,vec,  0,  0,  dimx,  dimy,  input_dim);//running value for minimum
-			// find minimum
+                    nrm = x_diff*x_diff+y_diff*y_diff;
+                    if (nrm > radius*radius) continue;
+                    gauss = exp(-nrm/(2.*sigma*sigma));
+                    for (int k = 0; k < input_dim; k++){
+                        temporay_weights[x*dimy*input_dim+y*input_dim+k] += vec[k] *gauss ;
+                    }
+                    temporary_divisors[x*dimy+y] += gauss;
+                }
+            }
+        
+        }
+        // batch loop end
+        for (int i = 0; i < dimx; i++) {
+            for (int j = 0; j < dimy; j++){
+                if (temporary_divisors[i*dimy + j] != 0){
+                    for (int k = 0; k < input_dim; k++){
+                        weights[i*dimy* input_dim + j * input_dim + k] += learning_rate *(temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j]  - weights[i*dimy* input_dim + j * input_dim + k]);
+                        //weights[i*dimy* input_dim + j * input_dim + k] -= (weights[i*dimy* input_dim + j * input_dim + k] - temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j] ) * learning_rate ; // (1.+learning_rate);
+                    } 
+                }
+                
+            }
+        }
+        
 
-			for(int x = 0; x < dimx; x++){
-				for(int y = 0; y < dimy; y++){
-					nrm = norm(weights,vec,  x,  y,  dimx,  dimy,  input_dim);
-					if (nrm < value){
-						value = nrm;
-						y_min = y;
-						x_min = x;
-					}
-				}
-			}
-			for(int x = 0; x < dimx; x++){
-				for(int y = 0; y < dimy; y++){
-					x_diff = (x-x_min);
-					y_diff = (y-y_min);
-					y_diff = y_diff > dimy/2 ? abs(y_diff - dimy) : y_diff;
-					x_diff = x_diff > dimx/2 ? abs(x_diff - dimx) : x_diff;
-
-					nrm = x_diff*x_diff+y_diff*y_diff;
-					if (nrm > radius*radius) continue;
-					gauss = exp(-nrm/(2.*sigma*sigma));
-					for (int k = 0; k < input_dim; k++){
-						temporay_weights[x*dimy*input_dim+y*input_dim+k] += vec[k] *gauss ;
-					}
-					temporary_divisors[x*dimy+y] += gauss;
-				}
-			}
-		
-		}
-		// batch loop end
-		for (int i = 0; i < dimx; i++) {
-			for (int j = 0; j < dimy; j++){
-				if (temporary_divisors[i*dimy + j] != 0){
-					for (int k = 0; k < input_dim; k++){
-						// weights[i*dimy* input_dim + j * input_dim + k] = (weights[i*dimy* input_dim + j * input_dim + k] + learning_rate *temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j] ) / (1.+learning_rate);
-						weights[i*dimy* input_dim + j * input_dim + k] += learning_rate *(temporay_weights[i*dimy* input_dim + j * input_dim + k] / temporary_divisors[i*dimy + j]  - weights[i*dimy* input_dim + j * input_dim + k]);
-
-					} 
-				}
-				
-			}
-		}
-	
-		learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
-		sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_sigma * exp((-1)*epoch/sigma_dec);
-		
-		if (prnt) {		
-			time(&end_t);	
-			diff_t = difftime(end_t, start_t);
-			diff_t /= epoch;
-			diff_t *= (epochs - epoch - 1);
-			loading_bar[(epoch * 39)/epochs] = '#';
-			printf("%s ETA: %.2fs EPOCH: %d LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,epoch,learning_rate,sigma);
-		}
-	}// epoch loop end
-	if (prnt) printf("\n%s Time: %.2fs LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
+        learning_rate = linear_lr ? start_lr - epoch*lr_dec : start_lr * exp((-1)*epoch/lr_dec);
+        sigma = linear_rad ? start_sigma - epoch*sigma_dec : start_sigma * exp((-1)*epoch/sigma_dec);
+        
+        if (prnt) {		
+            time(&end_t);	
+            diff_t = difftime(end_t, start_t);
+            diff_t /= epoch;
+            diff_t *= (epochs - epoch - 1);
+            loading_bar[(epoch * 39)/epochs] = '#';
+            printf("%s ETA: %.2fs EPOCH: %d LR: %lf, SIGMA:%lf \r",loading_bar,diff_t,epoch,learning_rate,sigma);
+        }
+        
+    }
+    // epoch loop end
+	if (prnt) printf("\n%s Time: %.2f s LR: %lf, SIGMA:%lf \n",loading_bar,difftime(end_t, start_t),learning_rate,sigma);
 	
 	return weights;
 	
