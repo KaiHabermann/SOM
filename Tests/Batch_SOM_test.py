@@ -13,7 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from SOMs.bSOM import batch_SOM
+from SOM.bSOM import batch_SOM
 
 def toggle_style():
     plt.locator_params(axis='y', nbins=10)

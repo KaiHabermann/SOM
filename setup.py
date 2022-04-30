@@ -1,6 +1,6 @@
 import setuptools
 
-packages = setuptools.find_packages(where='./')
+packages = ["./SOM","./Tests"]
 
 setuptools.setup(
     name="SOM",

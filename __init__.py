@@ -1,4 +1,4 @@
-from SOMs.bSOM import  *
-from SOMs.SOM import *
+from SOM.bSOM import  *
+from SOM.SOM import *
 
-print(SOM)
+print(som)

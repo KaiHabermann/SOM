@@ -1,7 +1,7 @@
 import numpy as np 
 from multiprocessing import Pool
 import ctypes
-from SOMs.SOM import SOM, gauss
+from SOM.SOM import som, gauss
 from helpers.c_init import _c_extension, C_INIT_SUCESS
 
 
@@ -88,7 +88,7 @@ def winning_neuron_asyinc(args):
 
 	return [new_W,new_w_divisor]
 
-class batch_SOM(SOM):
+class batch_SOM(som):
 	def __init__(self,outdim,indim,trainings_set,pool_size = 2 ,PCA=False,periodic_boundarys=False,random=False):
 		
 		super().__init__(outdim,indim,trainings_set,neighbourhood_function = None,PCA=PCA,periodic_boundarys=periodic_boundarys,random=random)

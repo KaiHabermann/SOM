@@ -13,7 +13,7 @@ def e_func(k):
 def eins(x):
 	return x
 
-class SOM(object):
+class som(object):
 	def __init__(self,outdim,indim,trainings_set,PCA = False,periodic_boundarys = False,random=False,neighbourhood_function = gauss):
 		"""
 		outdim: the dimension of the output

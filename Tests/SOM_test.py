@@ -13,7 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 sys.path.insert(0,current_dir)
-from SOMs.SOM import *
+from SOM.SOM import *
 
 def color_test():
 	"""
@@ -35,7 +35,7 @@ def color_test():
 	# 																	if not enough epochs are run afterwards)
 	# pool_size only important, if train_async is used
 	h = lambda x2,sgma: np.exp(-x2/(2*sgma)) # guass
-	som = SOM(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,neighbourhood_function=h)
+	som = som(map_dim,len(values[0]),values,PCA=True,periodic_boundarys=False,neighbourhood_function=h)
 	
 	# Training 
 	# learning_rate gives initial learning rate, while learning_rate_end gives learning rate in last epoch
