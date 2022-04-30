@@ -1,1 +1,1 @@
-include so_files/libsom.so
+recursive-include so_files *.so
