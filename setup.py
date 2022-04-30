@@ -1,6 +1,12 @@
 import setuptools
+packages = ["SOM","Tests","helpers","libsom"]
 
-packages = ["SOM","Tests","helpers"]
+
+module1 = setuptools.Extension('libsom',
+                   sources = ['helpers/c_helper.c'],
+                   include_dirs = [],
+                   extra_compile_args=['-fPIC',"-fopenmp"]
+                    )
 
 setuptools.setup(
     name="SOM",
@@ -13,4 +19,6 @@ setuptools.setup(
     install_requires=[line.strip() for line in open('requirements.txt', 'r').readlines()],
     extras_require={},
     classifiers=[],
+    package_data={'':['*.so']},
+    # ext_modules = [module1]
 )

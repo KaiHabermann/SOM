@@ -3,7 +3,7 @@ import os
 try:
 	path = os.path.dirname(os.path.abspath(__file__))
 	parent = os.path.dirname(path)
-	_c_extension = ctypes.CDLL(parent + '/SOM/so_files/libsom.so')
+	_c_extension = ctypes.CDLL(parent + '/libsom/libsom.so')
 	_c_extension.train_from_c.argtypes = (ctypes.c_int , ctypes.c_int, ctypes.c_int,ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),ctypes.POINTER(ctypes.c_double),ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int)
 	_c_extension.train_from_c.restype = ctypes.POINTER(ctypes.c_double)
 
