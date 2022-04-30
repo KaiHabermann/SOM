@@ -3,6 +3,8 @@
 ## Build:
 - sh build.sh will build the projects cython and c files<br/>
 
+- flag -p while building will activate parallel training. This is not recomended, since the overhead is usually way more than the speed up. <br/>
+
 - there is no installation script yet<br/>
 
 - you need to alter you PYTHONPATH manually<br/>
