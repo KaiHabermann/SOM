@@ -134,5 +134,5 @@ def relative_density_test(data_path = "csv_files/2lep_complete.csv",
 
 
 if __name__=="__main__":
-    #relative_density_test()
-    relative_density_test(model_path=None)
+    relative_density_test()
+    # relative_density_test(model_path=None)
